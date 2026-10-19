@@ -1,3 +1,91 @@
 import type { Movie } from "../movies.ts";
 
-export const MOVIES: readonly Movie[] = [];
+export const MOVIES: readonly Movie[] = [
+	{
+		reel: "r17",
+		title: "The Hitchhiker's Guide to the Galaxy",
+		year: 2005,
+		aliases: [
+			"hitchhiker's guide to the galaxy",
+			"hitchhikers guide to the galaxy",
+			"hitchhiker guide to the galaxy",
+			"the hitchhikers guide to the galaxy",
+			"hitchhiker's guide",
+			"hitchhikers guide",
+			"hitchhiker's guide to the galaxy 2005",
+			"hhgttg",
+			"h2g2",
+		],
+		trivia: "Marvin was voiced by Alan Rickman and played inside the suit by Warwick Davis.",
+	},
+	{
+		reel: "r18",
+		title: "Alien",
+		year: 1979,
+		aliases: ["alien 1979", "ridley scott's alien"],
+		trivia: "Swiss artist H. R. Giger designed the creature and shared the film's Oscar for Best Visual Effects.",
+	},
+	{
+		reel: "r19",
+		title: "Blade Runner",
+		year: 1982,
+		aliases: ["bladerunner", "blade runner 1982", "blade runner the final cut", "blade runner final cut", "blade runner director's cut"],
+		trivia: "It's adapted from Philip K. Dick's 1968 novel Do Androids Dream of Electric Sheep?",
+	},
+	{
+		reel: "r20",
+		title: "Terminator 2: Judgment Day",
+		year: 1991,
+		aliases: ["terminator 2", "t2", "terminator ii", "terminator 2 judgement day", "t2 judgment day", "t2 judgement day", "terminator two"],
+		trivia: "Linda Hamilton's identical twin sister Leslie doubled for her, including as the T-1000's copy of Sarah.",
+	},
+	{
+		reel: "r21",
+		title: "The Godfather",
+		year: 1972,
+		aliases: ["godfather", "godfather part 1", "godfather part i", "the godfather part i", "godfather 1", "the godfather 1972"],
+		trivia: "The horse's head in the bed was real, obtained from a dog-food factory.",
+	},
+	{
+		reel: "r22",
+		title: "Psycho",
+		year: 1960,
+		aliases: ["psycho 1960", "hitchcock's psycho", "hitchcocks psycho"],
+		trivia: "The blood swirling down the drain in the shower scene was Bosco chocolate syrup.",
+	},
+	{
+		reel: "r23",
+		title: "Casablanca",
+		year: 1942,
+		aliases: ["casablanca 1942"],
+		trivia: "Nobody ever says \"Play it again, Sam\": Ilsa's actual line is \"Play it, Sam.\"",
+	},
+	{
+		reel: "r24",
+		title: "The Lion King",
+		year: 1994,
+		aliases: ["lion king", "lion king 1994", "the lion king 1994", "disney's the lion king", "disneys the lion king"],
+		trivia: "It won Oscars for Hans Zimmer's score and for Elton John and Tim Rice's \"Can You Feel the Love Tonight\".",
+	},
+	{
+		reel: "r25",
+		title: "Toy Story",
+		year: 1995,
+		aliases: ["toy story 1", "toystory", "toy story 1995"],
+		trivia: "It was the first feature film made entirely with computer animation.",
+	},
+	{
+		reel: "r26",
+		title: "Finding Nemo",
+		year: 2003,
+		aliases: ["nemo", "findingnemo", "finding nemo 2003"],
+		trivia: "It won the Academy Award for Best Animated Feature.",
+	},
+	{
+		reel: "r27",
+		title: "Ghostbusters",
+		year: 1984,
+		aliases: ["ghost busters", "ghostbusters 1984", "ghostbusters 1"],
+		trivia: "Dan Aykroyd first wrote it as a vehicle for himself and John Belushi, who died before it was made.",
+	},
+];
