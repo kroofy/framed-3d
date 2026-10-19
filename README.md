@@ -4,8 +4,8 @@ A multiplayer take on [framed.wtf](https://framed.wtf/): guess the movie, but ev
 low-poly **3D diorama** of a famous scene. You get six shots per reel, from cryptic to obvious. Every wrong guess or skip
 cuts to the next one. You can drag to peek around the set.
 
-- 16 reels: Jaws, Jurassic Park, 2001, The Matrix, Titanic, Star Wars, E.T., Back to the Future, Up, Raiders, The Shining,
-  Interstellar, King Kong, The Wizard of Oz, The Fellowship of the Ring, and Inception.
+- 117 reels, from Casablanca and Psycho to Barbie and Oppenheimer, including The Hitchhiker's Guide to the Galaxy (r17).
+  Run `node -e "import('./server/movies.ts').then(m => console.log(m.MOVIES.map(x => x.title).join('\n')))"` for the full list, which spoils them all.
 - Live rooms: share a 4-letter code or link, and everyone plays the same reel at the same time with a timer, scoreboard, and chat.
 - Scoring: 600 points for a first-frame solve, down to 100 on the sixth frame. The first solver of a reel gets +50, and each hint costs 100.
 - Titles never leave the server until the reveal, so nobody can peek in devtools. Chat blocks spoilers.
@@ -59,11 +59,12 @@ npm test           # game logic, scoring, restart durability, AI host (faux mode
 - `server/game.ts` holds the room doc, durable clock, scoring, and the Projectionist extension.
 - `server/main.ts` is the HTTP + WebSocket server.
 - `public/stage.js` is the Three.js stage and its kit of low-poly helpers.
-- `public/reels.js` builds the 16 sets, each with 6 shots ordered cryptic → obvious.
+- `public/reels.js` builds the original 16 sets, and `public/reels/bNN.js` builds the rest, each with 6 shots ordered cryptic → obvious.
+- `server/movies/bNN.ts` holds the matching answers. `npm test` checks that every set has a movie and that no two movies share an alias.
 
 To preview a set, open `/?preview=r07&f=0` and switch shots with `__setFrame(n)` in the console. This view spoils the reel.
 
 To add a reel:
-1. Add an entry to `MOVIES` in `server/movies.ts`.
-2. Add a builder with the same id to `public/reels.js`.
+1. Add an entry to a `server/movies/bNN.ts` file.
+2. Add a builder with the same id to the matching `public/reels/bNN.js`.
 3. Check every shot in preview mode.

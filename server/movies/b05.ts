@@ -26,7 +26,7 @@ export const MOVIES: readonly Movie[] = [
 		reel: "r61",
 		title: "Willy Wonka & the Chocolate Factory",
 		year: 1971,
-		aliases: ["willy wonka and the chocolate factory", "willy wonka chocolate factory"],
+		aliases: ["willy wonka and the chocolate factory", "willy wonka chocolate factory", "willy wonka"],
 		trivia: "Gene Wilder agreed to play Wonka only if he could limp out with a cane and then somersault, so no one would know if he was telling the truth.",
 	},
 	{
