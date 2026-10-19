@@ -9,7 +9,18 @@ export type Movie = {
 	readonly trivia: string;
 };
 
-export const MOVIES: readonly Movie[] = [
+import { MOVIES as B01 } from "./movies/b01.ts";
+import { MOVIES as B02 } from "./movies/b02.ts";
+import { MOVIES as B03 } from "./movies/b03.ts";
+import { MOVIES as B04 } from "./movies/b04.ts";
+import { MOVIES as B05 } from "./movies/b05.ts";
+import { MOVIES as B06 } from "./movies/b06.ts";
+import { MOVIES as B07 } from "./movies/b07.ts";
+import { MOVIES as B08 } from "./movies/b08.ts";
+import { MOVIES as B09 } from "./movies/b09.ts";
+import { MOVIES as B10 } from "./movies/b10.ts";
+
+const CORE: readonly Movie[] = [
 	{ reel: "r01", title: "Jaws", year: 1975, aliases: [], trivia: "The mechanical shark was nicknamed Bruce, after Spielberg's lawyer." },
 	{ reel: "r02", title: "Jurassic Park", year: 1993, aliases: [], trivia: "The water ripple was made by plucking a guitar string run under the dashboard." },
 	{ reel: "r03", title: "2001: A Space Odyssey", year: 1968, aliases: ["2001", "2001 a space odyssey", "a space odyssey"], trivia: "Kubrick's monolith was originally planned to be a transparent tetrahedron." },
@@ -27,6 +38,8 @@ export const MOVIES: readonly Movie[] = [
 	{ reel: "r15", title: "The Lord of the Rings: The Fellowship of the Ring", year: 2001, aliases: ["lord of the rings", "the lord of the rings", "lotr", "fellowship of the ring", "the fellowship of the ring", "lord of the rings the fellowship of the ring", "the return of the king", "return of the king", "the two towers", "two towers"], trivia: "Peter Jackson's crew made about 40 copies of the One Ring." },
 	{ reel: "r16", title: "Inception", year: 2010, aliases: [], trivia: "The rotating hallway was a full-size set built inside a giant turning drum." },
 ];
+
+export const MOVIES: readonly Movie[] = [...CORE, ...B01, ...B02, ...B03, ...B04, ...B05, ...B06, ...B07, ...B08, ...B09, ...B10];
 
 const BY_REEL = new Map(MOVIES.map((movie) => [movie.reel, movie]));
 

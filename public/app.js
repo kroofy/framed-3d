@@ -355,4 +355,5 @@ if (preview) {
 	state = { status: "preview", frames: 6, my: null };
 	setFrame(Number(new URLSearchParams(location.search).get("f") ?? 0));
 	window.__setFrame = (f) => setFrame(f);
+	window.__stage = stage;
 }

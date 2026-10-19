@@ -1,42 +1,20 @@
-// Sixteen low-poly film sets. Each builds one diorama and returns six shots, cryptic first and obvious last.
+// The original sixteen low-poly film sets; more live in reels/bNN.js. Each builds one diorama and returns six shots, cryptic first and obvious last.
 // Objects take `from` (first frame they appear on) and `until`, so wide shots don't spoil a later frame.
 // Ids are neutral on purpose: the server owns the titles.
 
-const PI = Math.PI;
+import { PI, rng, trees, city } from "./kit.js";
+import { REELS as B01 } from "./reels/b01.js";
+import { REELS as B02 } from "./reels/b02.js";
+import { REELS as B03 } from "./reels/b03.js";
+import { REELS as B04 } from "./reels/b04.js";
+import { REELS as B05 } from "./reels/b05.js";
+import { REELS as B06 } from "./reels/b06.js";
+import { REELS as B07 } from "./reels/b07.js";
+import { REELS as B08 } from "./reels/b08.js";
+import { REELS as B09 } from "./reels/b09.js";
+import { REELS as B10 } from "./reels/b10.js";
 
-function rng(seed) {
-	let s = seed >>> 0;
-	return () => ((s = (s * 1664525 + 1013904223) >>> 0) / 4294967296);
-}
-
-function trees(k, n, area, o = {}) {
-	const r = rng(o.seed ?? 7);
-	for (let i = 0; i < n; i++) {
-		const x = area[0] + r() * (area[1] - area[0]);
-		const z = area[2] + r() * (area[3] - area[2]);
-		if (o.avoid && o.avoid(x, z)) continue;
-		const h = (o.h ?? 6) * (0.7 + r() * 0.6);
-		k.cyl(0.15, 0.25, h * 0.4, o.trunk ?? 0x4a3020, { x, y: h * 0.2, z, from: o.from });
-		k.cone(h * 0.28, h * 0.8, o.color ?? 0x1f4a2a, { x, y: h * 0.6, z, seg: 6, from: o.from });
-	}
-}
-
-function city(k, n, area, o = {}) {
-	const r = rng(o.seed ?? 3);
-	const lit = o.windows ? k.mat(o.windows, { emissive: o.windows, glow: 0.6 }) : null;
-	for (let i = 0; i < n; i++) {
-		const x = area[0] + r() * (area[1] - area[0]);
-		const z = area[2] + r() * (area[3] - area[2]);
-		if (o.avoid && o.avoid(x, z)) continue;
-		const w = (o.w ?? 6) * (0.6 + r() * 0.8);
-		const h = (o.h ?? 20) * (0.3 + r() * 1.0);
-		const shade = o.colors ? o.colors[Math.floor(r() * o.colors.length)] : 0x555a66;
-		k.box(w, h, w, shade, { x, y: h / 2, z, from: o.from });
-		if (lit && r() > 0.3) k.box(w * 1.01, h * 0.02, w * 1.01, lit, { x, y: h * (0.3 + r() * 0.6), z, from: o.from, shadow: false });
-	}
-}
-
-export const REELS = {
+const CORE = {
 	// ----------------------------------------------------------------------------------------------- the shark
 	r01: (k) => {
 		k.fog(0x9cc9e3, 40, 300);
@@ -1303,3 +1281,5 @@ export const REELS = {
 		};
 	},
 };
+
+export const REELS = { ...CORE, ...B01, ...B02, ...B03, ...B04, ...B05, ...B06, ...B07, ...B08, ...B09, ...B10 };
