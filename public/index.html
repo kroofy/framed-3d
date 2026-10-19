@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Framed 3D</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+		<link rel="stylesheet" href="/style.css" />
+		<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎞️</text></svg>" />
+	</head>
+	<body>
+		<header>
+			<a class="logo" href="/" title="Home"><span>FRAMED</span><b>3D</b></a>
+			<div class="room-chip hidden" id="roomChip">
+				<span>Room</span><b id="roomCode">----</b>
+				<button id="copyLink" class="ghost small" title="Copy invite link">🔗 Invite</button>
+			</div>
+			<div class="conn" id="conn" title="Connection">●</div>
+		</header>
+
+		<!-- Home -->
+		<main id="home" class="screen">
+			<section class="hero">
+				<h1>Guess the movie<br />from a <em>3D film set</em>.</h1>
+				<p>
+					Each reel is a low-poly diorama of a famous movie. You get six frames: every wrong guess cuts to a new, more
+					revealing shot. Drag to peek around the set. Play together, live.
+				</p>
+				<div class="card join-card">
+					<label>Your name<input id="nameInput" maxlength="18" placeholder="e.g. Kubrick Fan" autocomplete="nickname" /></label>
+					<div class="row">
+						<button id="createBtn" class="primary">🎬 Start a screening</button>
+					</div>
+					<div class="divider"><span>or join friends</span></div>
+					<div class="row">
+						<input id="codeInput" maxlength="4" placeholder="CODE" class="code" />
+						<button id="joinBtn">Join</button>
+					</div>
+				</div>
+			</section>
+		</main>
+
+		<!-- Lobby -->
+		<main id="lobby" class="screen hidden">
+			<section class="lobby-grid">
+				<div class="card">
+					<h2>Tonight's screening</h2>
+					<p class="muted">Share the code <b class="code-big" id="lobbyCode">----</b> or the invite link. Anyone with it can join.</p>
+					<ul class="players" id="lobbyPlayers"></ul>
+					<div id="hostControls" class="host-controls">
+						<label>Reels <output id="roundsOut">6</output><input type="range" id="rounds" min="1" max="16" value="6" /></label>
+						<label>Seconds per reel <output id="secondsOut">120</output><input type="range" id="seconds" min="30" max="300" step="15" value="120" /></label>
+						<button id="startBtn" class="primary big">▶ Roll film</button>
+					</div>
+					<p id="waitHost" class="muted hidden">Waiting for the host to roll film…</p>
+				</div>
+				<div class="card chat-card">
+					<h3>Lobby chat</h3>
+					<div class="chat" id="lobbyChat"></div>
+					<form class="chat-form" data-chat><input placeholder="Say something… (@projectionist to ask the AI host)" maxlength="280" /></form>
+				</div>
+			</section>
+		</main>
+
+		<!-- Game -->
+		<main id="game" class="screen hidden">
+			<section class="theater">
+				<div class="topline">
+					<div class="reel-label" id="reelLabel">Reel 1 / 6</div>
+					<div class="timer"><div class="timer-bar" id="timerBar"></div><span id="timerText">2:00</span></div>
+				</div>
+				<div class="screen-frame">
+					<div class="stage" id="stage">
+						<div class="grain"></div>
+						<div class="vignette"></div>
+						<div class="frame-tag" id="frameTag">FRAME 1</div>
+						<div class="drag-hint" id="dragHint">⟲ drag to look around · scroll to zoom</div>
+						<div class="reveal hidden" id="reveal">
+							<div class="reveal-inner">
+								<div class="reveal-kicker" id="revealKicker">It was…</div>
+								<div class="reveal-title" id="revealTitle"></div>
+								<div class="reveal-year" id="revealYear"></div>
+								<div class="reveal-trivia" id="revealTrivia"></div>
+								<div class="reveal-next" id="revealNext"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="filmstrip" id="filmstrip"></div>
+				<div class="guess-area" id="guessArea">
+					<div class="guess-box">
+						<input id="guessInput" placeholder="Search for a movie title…" autocomplete="off" spellcheck="false" />
+						<ul class="suggest hidden" id="suggest"></ul>
+					</div>
+					<button id="guessBtn" class="primary">Guess</button>
+					<button id="skipBtn" class="ghost" title="Skip to the next frame">Skip ⏭</button>
+					<button id="hintBtn" class="ghost hidden" title="Ask the AI Projectionist for a hint (−100 points)">🔦 Hint</button>
+				</div>
+				<div class="my-status" id="myStatus"></div>
+				<ol class="my-guesses" id="myGuesses"></ol>
+				<div class="host-bar hidden" id="hostBar">
+					<button id="nextBtn" class="ghost small">⏭ Next reel now</button>
+				</div>
+			</section>
+			<aside class="side">
+				<div class="card">
+					<h3>Audience</h3>
+					<ul class="scoreboard" id="scoreboard"></ul>
+				</div>
+				<div class="card chat-card">
+					<h3>Chat</h3>
+					<div class="chat" id="gameChat"></div>
+					<form class="chat-form" data-chat><input placeholder="Chat… (@projectionist asks the AI host)" maxlength="280" /></form>
+				</div>
+			</aside>
+		</main>
+
+		<!-- Over -->
+		<main id="over" class="screen hidden">
+			<section class="over">
+				<h1>That's a wrap 🍿</h1>
+				<ol class="podium" id="podium"></ol>
+				<div class="card">
+					<h3>Tonight's reels</h3>
+					<ol class="recap" id="recap"></ol>
+					<div class="row">
+						<button id="shareBtn" class="ghost">📋 Copy my results</button>
+						<button id="againBtn" class="primary">🔁 Back to the lobby</button>
+					</div>
+					<p id="waitAgain" class="muted hidden">The host can start another screening.</p>
+				</div>
+			</section>
+		</main>
+
+		<div class="toast hidden" id="toast"></div>
+		<script type="module" src="/app.js"></script>
+	</body>
+</html>
