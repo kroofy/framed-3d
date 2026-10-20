@@ -1153,8 +1153,8 @@ export const REELS = {
 		for (let i = 0; i < 12; i++) k.box(0.15, 1.2 + (i % 3) * 0.5, 0.05, 0x3a2a20, { x: Math.sin(i) * 0.7, y: 0.8 + i * 0.35, z: 1.36, ry: Math.sin(i), shadow: false });
 		const dots = [[-0.12, 1.64], [0.12, 1.64], [0, 1.44]];
 		dots.forEach(([x, y]) => {
-			k.glow(0xff1010, 0.3, { x, y, z: 1.56, from: 3 });
-			k.sphere(0.025, 0xff2020, { x, y, z: 1.52, emissive: 0xff0000, glow: 2, from: 3 });
+			k.glow(0xff1010, 0.3, { x, y, z: 1.56, from: 2 });
+			k.sphere(0.025, 0xff2020, { x, y, z: 1.52, emissive: 0xff0000, glow: 2, from: 2 });
 		});
 		// The hunter in the trees.
 		const pred = k.group({ x: 0, y: 0, z: -20, ry: 0.1, from: 5 });
@@ -1189,7 +1189,7 @@ export const REELS = {
 		[-1, 1].forEach((s) => k.cone(0.03, 0.45, 0xd0d0d0, { x: s * 0.82, y: 1.55, z: 0.15, rx: PI / 2, parent: pred, metal: 0.8 }));
 		k.point(0xfff0d0, 10, 12, { x: 1, y: 4, z: -15, from: 5 });
 		// The chopper over the canopy.
-		const heli = k.group({ x: 30, y: 36, z: -40, ry: 0.8, from: 2 });
+		const heli = k.group({ x: 30, y: 36, z: -40, ry: 0.8, from: 1 });
 		const olive = 0x4a5634;
 		k.capsule(1.4, 3.4, olive, { rx: PI / 2, parent: heli, s: [1, 1, 1] });
 		k.box(0.5, 0.6, 6, olive, { y: 0.6, z: -4.6, parent: heli });
@@ -1204,7 +1204,7 @@ export const REELS = {
 			heli.position.y = 36 + Math.sin(t) * 0.3;
 		});
 		// The handshake.
-		const shake = k.group({ x: 300, y: 0, z: 0, from: 4 });
+		const shake = k.group({ x: 300, y: 0, z: 0, from: 3 });
 		k.box(40, 0.2, 40, 0x2a3a20, { parent: shake });
 		jungle(30, [282, 318, -30, -6], 9);
 		const arm = (skin, side) => {
@@ -1219,9 +1219,9 @@ export const REELS = {
 		};
 		arm(0xd8a07a, -1);
 		arm(0x6a4430, 1);
-		k.spot(0xfff0d8, 30, { x: 302, y: 7, z: 6, target: [300, 1.6, 0], angle: 0.4, from: 4 });
+		k.spot(0xfff0d8, 30, { x: 302, y: 7, z: 6, target: [300, 1.6, 0], angle: 0.4, from: 3 });
 		// Thermal vision of a soldier.
-		const heat = k.group({ x: -300, y: 0, z: 0, from: 1 });
+		const heat = k.group({ x: -300, y: 0, z: 0, from: 4 });
 		const cold = { emissive: 0x10106a, glow: 1, rough: 1 };
 		k.box(80, 0.2, 80, 0x0a0a3a, { parent: heat, ...cold });
 		for (let i = 0; i < 26; i++) {
@@ -1256,10 +1256,10 @@ export const REELS = {
 		return {
 			shots: [
 				{ pos: [150.4, 1.5, 151.4], look: [150.1, 0.75, 149.3], fov: 40, fog: [0x4a6a4a, 4, 40] },
-				{ pos: [-300, 2.2, 6], look: [-299.5, 1.4, -4], fov: 45, fog: [0x0a0a50, 5, 60], filter: "saturate(1.5) contrast(1.15)" },
 				{ pos: [10, 44, -12], look: [30, 34, -40], fov: 50 },
 				{ pos: [0.35, 1.7, 3.0], look: [0, 1.55, 1.3], fov: 40 },
 				{ pos: [300.3, 2.0, 2.6], look: [300, 1.55, 0], fov: 50, fog: [0x3a5a3a, 6, 40] },
+				{ pos: [-300, 2.2, 6], look: [-299.5, 1.4, -4], fov: 45, fog: [0x0a0a50, 5, 60], filter: "saturate(1.5) contrast(1.15)" },
 				{ pos: [1.2, 3.0, -16], look: [0, 2.9, -20], fov: 50 },
 			],
 		};

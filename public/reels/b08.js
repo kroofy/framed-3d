@@ -624,7 +624,7 @@ export const REELS = {
 				g.restore();
 			}
 		});
-		const board = k.group({ x: 0, y: 0, z: 0.6 });
+		const board = k.group({ x: 0, y: 0, z: 0.6, from: 2 });
 		[-1, 1].forEach((s) => {
 			k.box(0.74, 0.1, 0.74, wood, { x: s * 0.38, y: 0.05, parent: board });
 			k.plane(0.66, 0.66, k.mat(0xffffff, { map: track }), { x: s * 0.38, y: 0.102, rx: -PI / 2, rz: s > 0 ? PI : 0, parent: board });
@@ -651,8 +651,8 @@ export const REELS = {
 			});
 		});
 		const dieMat = k.mat(0xffffff, { map: pips, rough: 0.4 });
-		k.box(0.08, 0.08, 0.08, dieMat, { x: 0.32, y: 0.04, z: 1.35, ry: 0.4 });
-		k.box(0.08, 0.08, 0.08, dieMat, { x: 0.48, y: 0.04, z: 1.25, ry: -0.3 });
+		k.box(0.08, 0.08, 0.08, dieMat, { x: 0.32, y: 0.04, z: 1.35, ry: 0.4, from: 2 });
+		k.box(0.08, 0.08, 0.08, dieMat, { x: 0.48, y: 0.04, z: 1.25, ry: -0.3, from: 2 });
 		// The jungle grows in: vines up the walls, giant leaves and flowers.
 		const vine = 0x2f6a24;
 		const r = rng(12);
@@ -662,35 +662,35 @@ export const REELS = {
 			let p = base;
 			for (let j = 0; j < 6; j++) {
 				const q = onBack ? [p[0] + (r() - 0.5) * 1.4, p[1] + 1, -5.9 + r() * 0.2] : [-6.9 + r() * 0.2, p[1] + 1, p[2] + (r() - 0.5) * 1.4];
-				tube(k, p, q, 0.08, vine, { from: 2 });
-				if (j % 2) k.box(0.7, 0.04, 0.4, 0x3a8a2a, { x: q[0] + (onBack ? 0 : 0.3), y: q[1], z: q[2] + (onBack ? 0.3 : 0), ry: r() * 6, rx: 0.4, from: 2 });
+				tube(k, p, q, 0.08, vine, { from: 1 });
+				if (j % 2) k.box(0.7, 0.04, 0.4, 0x3a8a2a, { x: q[0] + (onBack ? 0 : 0.3), y: q[1], z: q[2] + (onBack ? 0.3 : 0), ry: r() * 6, rx: 0.4, from: 1 });
 				p = q;
 			}
 		}
 		for (let i = 0; i < 12; i++) {
 			const x = -6 + r() * 12, z = -5 + r() * 10;
 			if (Math.hypot(x, z - 0.6) < 2.2) continue;
-			const g = k.group({ x, z, ry: r() * 6, from: 2 });
+			const g = k.group({ x, z, ry: r() * 6, from: 1 });
 			for (let j = 0; j < 5; j++) k.box(0.6, 0.04, 1.4, 0x2f7a2a, { y: 0.4 + j * 0.05, z: 0.6, rx: -0.5, parent: k.group({ ry: (j * PI * 2) / 5, parent: g }) });
 		}
 		[[-4.5, -4], [3.5, -4.6], [-5.6, 1]].forEach(([x, z], i) => {
-			const g = k.group({ x, z, from: 2 });
+			const g = k.group({ x, z, from: 1 });
 			k.cyl(0.08, 0.12, 1.6 + i * 0.4, vine, { y: 0.8 + i * 0.2, parent: g });
 			for (let j = 0; j < 6; j++) k.sphere(0.35, 0xb03aa0, { x: Math.cos(j) * 0.35, y: 1.7 + i * 0.4, z: Math.sin(j) * 0.35, s: [1, 0.4, 1.6], ry: j, parent: g });
 			k.sphere(0.2, 0xf2c230, { y: 1.75 + i * 0.4, parent: g });
 		});
 		// Monkeys on the mantel.
 		[-1.2, 0.9].forEach((x) => {
-			const m = k.person({ x, y: 2.73, z: -5.65, s: 0.45, pose: x < 0 ? "raise" : "sit", colors: { shirt: 0x5a3a22, legs: 0x5a3a22, skin: 0xc8a080, hair: 0x5a3a22 }, sleeves: 0x5a3a22, from: 2 });
+			const m = k.person({ x, y: 2.73, z: -5.65, s: 0.45, pose: x < 0 ? "raise" : "sit", colors: { shirt: 0x5a3a22, legs: 0x5a3a22, skin: 0xc8a080, hair: 0x5a3a22 }, sleeves: 0x5a3a22, from: 1 });
 			void m;
 		});
 		// The stampede bursts through the side of the room.
-		k.box(0.32, 4.2, 4.5, 0x1a1208, { x: 7.1, y: 2.1, z: -2.5, from: 5 });
-		for (let i = 0; i < 12; i++) k.box(0.3 + r() * 0.5, 0.1, 0.2 + r() * 0.4, 0x5a4a38, { x: 6 - r() * 4, y: 0.05, z: -1 - r() * 4, ry: r() * 3, from: 5 });
-		elephant({ x: 5.2, z: -3.6, ry: -PI / 2 - 0.3, from: 5 });
-		rhino({ x: 2.2, z: -2.4, ry: -PI / 2 - 0.5, from: 5 });
-		zebra({ x: 0.2, z: -4.3, ry: -PI / 2 + 0.1, from: 5 });
-		k.particles(300, 0xc8b090, { box: [8, 3, 5], x: 3, z: -3, speed: 0.6, size: 0.06, opacity: 0.5, drift: 0.5, from: 5 });
+		k.box(0.32, 4.2, 4.5, 0x1a1208, { x: 7.1, y: 2.1, z: -2.5, from: 4 });
+		for (let i = 0; i < 12; i++) k.box(0.3 + r() * 0.5, 0.1, 0.2 + r() * 0.4, 0x5a4a38, { x: 6 - r() * 4, y: 0.05, z: -1 - r() * 4, ry: r() * 3, from: 4 });
+		elephant({ x: 5.2, z: -3.6, ry: -PI / 2 - 0.3, from: 4 });
+		rhino({ x: 2.2, z: -2.4, ry: -PI / 2 - 0.5, from: 4 });
+		zebra({ x: 0.2, z: -4.3, ry: -PI / 2 + 0.1, from: 4 });
+		k.particles(300, 0xc8b090, { box: [8, 3, 5], x: 3, z: -3, speed: 0.6, size: 0.06, opacity: 0.5, drift: 0.5, from: 4 });
 
 		// 1869: two boys bury the box in the woods.
 		const fx = 300;
@@ -785,11 +785,11 @@ export const REELS = {
 		return {
 			shots: [
 				{ pos: [0.9, 1.75, wz + 0.4], look: [0, 1.1, wz - 1.0], fov: 42, fog: [0x8a8478, 8, 40] },
-				{ pos: [fx + 0.9, 1.1, 2.0], look: [fx, 0.2, 0.3], fov: 42, fog: [0x1a2438, 6, 70], exposure: 1.4 },
 				{ pos: [5.2, 3, 5.2], look: [-1.5, 1.8, -3], fov: 55 },
-				{ pos: [0.05, 1.25, 1.75], look: [0, 0.05, 0.55], fov: 45 },
 				{ pos: [sx + 1.5, 1.8, 7], look: [sx, 2.4, -12], fov: 55 },
+				{ pos: [fx + 0.9, 1.1, 2.0], look: [fx, 0.2, 0.3], fov: 42, fog: [0x1a2438, 6, 70], exposure: 1.4 },
 				{ pos: [-1.8, 3.2, 4.4], look: [2.2, 1.0, -2.2], fov: 58 },
+				{ pos: [0.05, 1.25, 1.75], look: [0, 0.05, 0.55], fov: 45 },
 			],
 		};
 	},

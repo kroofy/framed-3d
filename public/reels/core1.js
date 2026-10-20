@@ -188,8 +188,8 @@ export const REELS = {
 			g.lineTo(130, 136);
 			g.fill();
 		});
-		k.box(1.5, 1.0, 0.05, k.mat(0xffffff, { map: sign }), { x: 2, y: 3.4, z: 11.75, ry: PI, from: 2 });
-		k.point(0xfff0c8, 4, 8, { x: 1.5, y: 4.5, z: 9.5, from: 2, until: 2 });
+		k.box(1.5, 1.0, 0.05, k.mat(0xffffff, { map: sign }), { x: 2, y: 3.4, z: 11.75, ry: PI, from: 1 });
+		k.point(0xfff0c8, 4, 8, { x: 1.5, y: 4.5, z: 9.5, from: 1, until: 1 });
 		// The gate: two log pillars, torches, an arch.
 		const gate = k.group({ x: -30, z: -25, ry: 0.5 });
 		[-6, 6].forEach((x) => {
@@ -206,7 +206,7 @@ export const REELS = {
 		// The tyrannosaur, out of its paddock beside the car, roaring in profile.
 		const rex = k.group({ x: 7, y: 0, z: 7, ry: -PI / 2 - 0.25, from: 5 });
 		k.spot(0xd0dcf0, 60, { x: 4, y: 12, z: -6, target: [6, 6, 7], angle: 0.6, distance: 45, from: 5 });
-		k.spot(0xffd8a0, 120, { x: -22, y: 6, z: -10, target: [-30, 12, -25], angle: 0.5, distance: 40, from: 1, until: 1 });
+		k.spot(0xffd8a0, 120, { x: -22, y: 6, z: -10, target: [-30, 12, -25], angle: 0.5, distance: 40, from: 4, until: 4 });
 		const skin = 0x5a5844;
 		[-1, 1].forEach((s) => {
 			k.box(1.3, 3.2, 2.2, skin, { x: s * 1.15, y: 4.0, z: -0.4, rx: 0.35, parent: rex });
@@ -239,10 +239,10 @@ export const REELS = {
 		return {
 			shots: [
 				{ pos: [-9.3, 0.75, -6.9], look: [-10, 0.12, -8], fov: 42, exposure: 1.3 },
-				{ pos: [-23.5, 3, -12.5], look: [-30, 9.5, -25], fov: 55, exposure: 1.3 },
 				{ pos: [0.5, 2.6, 7.5], look: [2, 3.4, 12], fov: 50, exposure: 1.3 },
-				{ pos: [0.7, 2.0, 0.2], look: [0.45, 1.75, 0.6], fov: 40, exposure: 1.2 },
 				{ pos: [-6.5, 2.4, -6.5], look: [0, 1.2, 0.5], fov: 45, exposure: 1.3 },
+				{ pos: [0.7, 2.0, 0.2], look: [0.45, 1.75, 0.6], fov: 40, exposure: 1.2 },
+				{ pos: [-23.5, 3, -12.5], look: [-30, 9.5, -25], fov: 55, exposure: 1.3 },
 				{ pos: [5, 3, -9.5], look: [5.5, 6, 7], fov: 55, exposure: 1.25 },
 			],
 		};

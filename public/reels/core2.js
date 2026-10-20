@@ -695,7 +695,7 @@ export const REELS = {
 		k.box(0.28, 0.06, 0.14, 0x3a2a1a, { x: -0.38, y: 1.12, parent: bike });
 		k.cyl(0.24, 0.2, 0.3, 0xb89a60, { x: 1.0, y: 1.05, parent: bike, seg: 10 });
 		k.torus(0.24, 0.02, 0x8a6a3a, { x: 1.0, y: 1.2, rx: PI / 2, parent: bike });
-		const twister = k.group({ x: -280, z: -80, from: 3 });
+		const twister = k.group({ x: -280, z: -80, from: 2 });
 		for (let i = 0; i < 14; i++) k.cyl(2 + i * 1.6, 1.4 + i * 1.6, 6, 0x5a4a3a, { y: 3 + i * 5.6, parent: twister, seg: 9, opacity: 0.85, open: true, side: 2 });
 		k.tick((t) => {
 			twister.rotation.y = t * 2;
@@ -750,10 +750,10 @@ export const REELS = {
 		const sepia = "sepia(0.85) contrast(1.1) brightness(0.95)";
 		return {
 			shots: [
-				{ pos: [0, 22, 1], look: [0, 0, 0], fov: 45 },
-				{ pos: [-318.6, 1.3, 31.2], look: [-319.6, 0.9, 28.4], fov: 45, filter: sepia },
 				{ pos: [-286, 3, 26], look: [-296, 4, -12], fov: 50, filter: sepia },
+				{ pos: [-318.6, 1.3, 31.2], look: [-319.6, 0.9, 28.4], fov: 45, filter: sepia },
 				{ pos: [-300, 6, 60], look: [-285, 30, -80], fov: 50, filter: sepia },
+				{ pos: [0, 22, 1], look: [0, 0, 0], fov: 45 },
 				{ pos: [23, 2.4, -6], look: [25, 6, -70], fov: 50 },
 				{ pos: [201.6, 3.4, 4.2], look: [200, 2.4, 1.4], fov: 45 },
 			],
