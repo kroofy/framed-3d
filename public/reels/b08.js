@@ -299,7 +299,7 @@ export const REELS = {
 		for (let i = 0; i < 4; i++) [-1, 1].forEach((s) => k.point(0xffe8b0, 25, 26, { x: s * 9, y: 4 + (i % 2) * 6, z: -12 + i * 8 }));
 		k.point(0xfff0d0, 30, 40, { y: 12, z: 6 });
 		// The bomb.
-		const bomb = k.group({ y: 0, z: 2, from: 3 });
+		const bomb = k.group({ y: 0, z: 2, from: 2 });
 		k.box(1.6, 0.5, 2.8, 0x4a4e52, { y: 0.55, parent: bomb });
 		[-0.7, 0.7].forEach((x) => [-1.1, 1.1].forEach((z) => k.cyl(0.2, 0.2, 0.15, 0x111111, { x, y: 0.2, z, rz: PI / 2, parent: bomb })));
 		k.cyl(0.6, 0.6, 2.6, 0xd8dce0, { y: 1.45, rx: PI / 2, parent: bomb, metal: 0.9, rough: 0.15, seg: 20 });
@@ -467,9 +467,9 @@ export const REELS = {
 		return {
 			shots: [
 				{ pos: [2.6, 1.5, mz + 3.4], look: [-1, 0.9, mz - 2], fov: 45 },
-				{ pos: [gx + 3.8, 1.0, 3.2], look: [gx + 0.4, 1.0, -1], fov: 42 },
 				{ pos: [-2.6, 1.1, az - 3.2], look: [0.5, 0.75, az + 1.6], fov: 50 },
 				{ pos: [0, 6.5, 11], look: [0, 2.6, -4], fov: 55 },
+				{ pos: [gx + 3.8, 1.0, 3.2], look: [gx + 0.4, 1.0, -1], fov: 42 },
 				{ pos: [lx + 3.4, 3, 2.6], look: [lx, 1, 0.4], fov: 45, fog: [0x14161c, 4, 40] },
 				{ pos: [bx + 2.6, 2.2, 0.3], look: [bx, 0.7, -1.4], fov: 45, fog: [0x2a2018, 6, 40] },
 			],
@@ -789,7 +789,7 @@ export const REELS = {
 				{ pos: [5.2, 3, 5.2], look: [-1.5, 1.8, -3], fov: 55 },
 				{ pos: [0.05, 1.25, 1.75], look: [0, 0.05, 0.55], fov: 45 },
 				{ pos: [sx + 1.5, 1.8, 7], look: [sx, 2.4, -12], fov: 55 },
-				{ pos: [0.5, 0.7, 2.9], look: [1.5, 1.6, -3], fov: 60 },
+				{ pos: [-1.8, 3.2, 4.4], look: [2.2, 1.0, -2.2], fov: 58 },
 			],
 		};
 	},
@@ -1125,10 +1125,38 @@ export const REELS = {
 		triumph.userData.limbs.armR.rotation.z = 2.7;
 		k.disc(0xf8f4e0, 5, { x: fx - 10, y: 24, z: 80 });
 		k.particles(120, 0xffb040, { x: fx, y: 1, box: [1.5, 6, 1.5], speed: -1.5, size: 0.05, opacity: 0.9 });
+
+		// Close-up: a few coconuts and a flat stone on a patch of sand.
+		const nz = 700;
+		k.ground(60, 0xd8c49a, { z: nz, bump: 0.12, seg: 30 });
+		const husk = k.canvas(128, 128, (g, w, h) => {
+			g.fillStyle = "#6a4a2a";
+			g.fillRect(0, 0, w, h);
+			g.strokeStyle = "#4a3018";
+			g.lineWidth = 2;
+			for (let i = 0; i < 60; i++) {
+				const x = (i * 37) % w, y = (i * 53) % h;
+				g.beginPath();
+				g.moveTo(x, y);
+				g.lineTo(x + 6, y + 18);
+				g.stroke();
+			}
+		});
+		const hm = k.mat(0xffffff, { map: husk, rough: 1 });
+		[[-0.5, -0.3, 0.2], [0.35, -0.6, 1.1], [-1.1, -1.1, 2.0]].forEach(([x, z, ry]) => k.sphere(0.22, hm, { x, y: 0.18, z: nz + z, ry, s: [1, 0.92, 1.1], seg: 12, rings: 9 }));
+		[[0.45, 0.25, 0.4], [-0.15, 0.45, -1.4]].forEach(([x, z, rz]) => {
+			const half = k.group({ x, y: 0.12, z: nz + z, rz, rx: -0.3 });
+			k.mesh(new k.THREE.SphereGeometry(0.21, 12, 8, 0, PI * 2, PI / 2, PI / 2), k.mat(0x5a3a20, { side: k.THREE.DoubleSide }), { parent: half });
+			k.cyl(0.19, 0.19, 0.01, 0xf4f0e4, { y: -0.01, parent: half, seg: 14 });
+		});
+		k.ico(0.35, 0x8a847a, { x: 1.0, y: 0.08, z: nz - 0.2, s: [1.3, 0.35, 1], rough: 1 });
+		[[-1.6, 0.4], [1.4, -1.2], [0.9, 0.9], [-0.6, 1.2]].forEach(([x, z], i) => k.ico(0.06 + (i % 2) * 0.04, 0xb0a490, { x, y: 0.03, z: nz + z }));
+		tube(k, [-2.4, 0.04, nz - 0.4], [-0.9, 0.04, nz + 0.6], 0.03, 0x9a8460);
+		k.point(0xfff0d0, 10, 12, { x: 2, y: 4, z: nz + 2 });
 		return {
 			shots: [
-				{ pos: [26, 7, 118], look: [0, 8, 0], fov: 45 },
 				{ pos: [cx + 4, 2.2, 7], look: [cx - 4, 1.4, -10], fov: 50, fog: [0x0e1824, 5, 110], exposure: 1.4 },
+				{ pos: [0.6, 1.7, nz + 2.2], look: [0, 0.1, nz - 0.2], fov: 45, fog: [0xe8dcc0, 6, 40], hide: ["sky"] },
 				{ pos: [px + 0.5, 2.35, pz + 0.75], look: [px, 1.4, pz], fov: 40 },
 				{ pos: [fx + 6, 1.6, 8], look: [fx + 0.6, 1.6, 0], fov: 45, fog: [0x0c1624, 6, 90], exposure: 1.3 },
 				{ pos: [25, 1.6, 86], look: [17, 2.6, 70], fov: 50 },
@@ -1354,8 +1382,8 @@ export const REELS = {
 		return {
 			shots: [
 				{ pos: [3.8, 1.9, qz + 10], look: [-0.5, 0.4, qz - 6], fov: 50, fog: [0xe8eef0, 20, 80], hide: ["sky", "stars"] },
-				{ pos: [sx + 40, 6, -64], look: [sx, 4, -38], fov: 50, fog: [0x101a24, 10, 200], exposure: 1.4, hide: ["sky", "stars"] },
 				{ pos: [1, 3.2, mz + 31], look: [0, 1.9, mz + 17], fov: 45, hide: ["stars"] },
+				{ pos: [sx + 40, 6, -64], look: [sx, 4, -38], fov: 50, fog: [0x101a24, 10, 200], exposure: 1.4, hide: ["sky", "stars"] },
 				{ pos: [nx + 6, 5, 9], look: [nx + 1, 0, 1], fov: 50, fog: [0x04101c, 10, 120], exposure: 1.3 },
 				{ pos: [nx + 12, 2, 14], look: [nx - 2, 7, -6], fov: 55, fog: [0x04101c, 10, 140], exposure: 1.3 },
 				{ pos: [6.5, 2.4, -1.5], look: [-0.8, 1.0, -2.8], fov: 45, hide: ["stars"] },
@@ -1525,8 +1553,8 @@ export const REELS = {
 		return {
 			shots: [
 				{ pos: [px + 0.9, 1.25, 0.65], look: [px + 0.1, 0.92, 0.05], fov: 32, fog: [0x0c0a10, 2, 20], hide: ["sky", "stars"] },
-				{ pos: [ox + 14, 23, 34], look: [ox, 26, -8], fov: 45, fog: [0x14183a, 40, 400], exposure: 1.3 },
 				{ pos: [-1.5, 1.6, pz + 12], look: [1.8, 1.4, pz + 2], fov: 45, fog: [0x3a3a78, 10, 160], exposure: 1.3, hide: ["sky", "stars"] },
+				{ pos: [ox + 14, 23, 34], look: [ox, 26, -8], fov: 45, fog: [0x14183a, 40, 400], exposure: 1.3 },
 				{ pos: [fx - 40, 10.2, 13.5], look: [fx - 4, 7.6, 0], fov: 50, fog: [0xb8d8f0, 60, 420], exposure: 1.1, hide: ["sky", "stars"] },
 				{ pos: [2.8, py + 0.6, 5.2], look: [0.5, py + 0.4, 0], fov: 50, fog: [0x06061a, 50, 200], hide: ["sky", "stars"] },
 				{ pos: [0.4, 4.2, 9], look: [0, 0.6, -6], fov: 42 },
@@ -1638,7 +1666,7 @@ export const REELS = {
 		const ribbon = 0x3a78c8;
 		const boxStack = [[0, 0, 1.6, 0.6, 1.1], [0.1, 0.6, 1.4, 0.5, 1.0], [-0.05, 1.1, 1.2, 0.45, 0.9]];
 		boxStack.forEach(([dx, y, w, h, d], i) => {
-			const g = k.group({ x: px + 1.5 + dx, y: 0.9 + y, z: -1.6, ry: (i - 1) * 0.12, from: 2 });
+			const g = k.group({ x: px + 1.5 + dx, y: 0.9 + y, z: -1.6, ry: (i - 1) * 0.12, from: 3 });
 			k.box(w, h, d, 0xd87898, { y: h / 2, parent: g });
 			k.box(w * 1.01, h * 1.01, 0.08, ribbon, { y: h / 2, parent: g });
 			k.box(0.08, h * 1.01, d * 1.01, ribbon, { y: h / 2, parent: g });
@@ -1756,13 +1784,41 @@ export const REELS = {
 		k.box(5, 0.05, 6, 0x8a1828, { y: 0.01, z: lz - 1 });
 		k.point(0xffe0d0, 12, 20, { y: 7, z: lz + 2 });
 		[-1, 1].forEach((s) => k.glow(0xffe8c0, 1.2, { x: s * 4, y: 6.5, z: lz - 4.8 }));
+
+		// A reception desk: pigeonholes of room keys, a brass bell and a guest ledger.
+		const kx = -1400;
+		k.box(20, 0.2, 20, 0x4a3a2a, { x: kx, y: -0.1 });
+		k.box(20, 8, 0.2, 0xd8cfb8, { x: kx, y: 4, z: -2.2 });
+		k.box(4.4, 3.4, 0.4, 0x5a3a22, { x: kx, y: 2.9, z: -1.9 });
+		for (let row = 0; row < 5; row++)
+			for (let col = 0; col < 8; col++) {
+				const x = kx - 1.9 + col * 0.54, y = 1.55 + row * 0.62;
+				k.box(0.46, 0.52, 0.1, 0x2a1a10, { x, y, z: -1.68 });
+				if ((row * 8 + col) % 5 === 3) k.box(0.3, 0.1, 0.08, 0xf0ead8, { x, y: y - 0.15, z: -1.62, rz: 0.1 });
+				else if ((row * 3 + col) % 4) {
+					k.box(0.04, 0.22, 0.03, 0xc8a040, { x, y: y - 0.05, z: -1.6, metal: 0.8, rough: 0.3 });
+					k.box(0.1, 0.16, 0.03, 0x7a5030, { x, y: y - 0.22, z: -1.6 });
+				}
+			}
+		k.box(5, 1.15, 0.9, 0x6a4428, { x: kx, y: 0.57, z: 0.2 });
+		k.box(5.2, 0.08, 1.1, 0x3a2414, { x: kx, y: 1.18, z: 0.2 });
+		const bell = k.group({ x: kx + 0.9, y: 1.22, z: 0.35 });
+		k.cyl(0.13, 0.13, 0.03, 0x2a2a2a, { parent: bell, seg: 16 });
+		k.sphere(0.11, 0xd8b048, { y: 0.03, s: [1, 0.8, 1], parent: bell, metal: 0.9, rough: 0.25, seg: 14, rings: 8 });
+		k.cyl(0.015, 0.015, 0.06, 0xd8b048, { y: 0.13, parent: bell, metal: 0.9 });
+		k.box(0.9, 0.04, 0.6, 0xf2ecdc, { x: kx - 0.6, y: 1.24, z: 0.35, ry: 0.15 });
+		k.box(0.02, 0.05, 0.6, 0x6a5a40, { x: kx - 0.6, y: 1.25, z: 0.35, ry: 0.15 });
+		k.cyl(0.012, 0.012, 0.35, 0x1a1a1a, { x: kx - 0.3, y: 1.26, z: 0.5, rz: PI / 2, ry: 0.6 });
+		k.cyl(0.18, 0.24, 0.3, 0x2a4a2a, { x: kx + 1.9, y: 1.37, z: 0.2 });
+		k.point(0xffe8c0, 14, 14, { x: kx + 1, y: 3.5, z: 3 });
+		k.point(0xc8d0e0, 5, 12, { x: kx - 3, y: 4, z: 2 });
 		return {
 			shots: [
 				{ pos: [cx + 1.8, 2.0, 3.4], look: [cx - 1.2, 1.2, -1.8], fov: 50, fog: [0x2a2824, 6, 30], exposure: 1.2 },
+				{ pos: [kx + 1.6, 1.9, 3.4], look: [kx - 0.2, 1.9, -1.6], fov: 45, fog: [0x2a2018, 6, 30] },
 				{ pos: [ax + 0.8, 4.0, 3.8], look: [ax, 4.2, -1.8], fov: 45, fog: [0x2a1a14, 5, 30] },
 				{ pos: [px + 0.2, 1.9, 2.6], look: [px + 1.4, 1.5, -1.6], fov: 40, fog: [0xf4c0cc, 6, 30] },
 				{ pos: [0, 2.0, lz + 8], look: [0, 2.3, lz - 4], fov: 50, fog: [0xf0c0c8, 10, 40] },
-				{ pos: [7, 16, 64], look: [0, 34, 12], fov: 50 },
 				{ pos: [0, 47, 62], look: [0, 57, 0], fov: 42 },
 			],
 		};
@@ -1800,7 +1856,7 @@ export const REELS = {
 		k.box(5, 26, 5, stone, { y: 13, z: -14, parent: base });
 		k.sphere(3, stone, { y: 27.5, z: -14, parent: base, seg: 12, rings: 8, s: [1, 1.3, 1] });
 		// The carousel at the foot of the hill.
-		const car0 = k.group({ x: -14, z: 4, from: 4 });
+		const car0 = k.group({ x: -14, z: 4, from: 3 });
 		k.cyl(5, 5, 0.5, 0xc8a050, { y: 0.4, parent: car0, seg: 24 });
 		k.cyl(0.4, 0.4, 5, 0xd8b060, { y: 3, parent: car0, metal: 0.6 });
 		const roof = k.canvas(256, 64, (g, w, h) => {
@@ -1823,7 +1879,7 @@ export const REELS = {
 			k.box(0.3, 0.1, 0.3, 0xc0282a, { y: 0.3, parent: horse });
 		}
 		k.tick((t) => (spin.rotation.y = t * 0.4));
-		k.point(0xffd890, 10, 16, { x: -14, y: 3, z: 8, from: 4 });
+		k.point(0xffd890, 10, 16, { x: -14, y: 3, z: 8, from: 3 });
 		// The girl: black bob, red dress, green cardigan.
 		const ame = k.person({ x: 1.3, y: 0.1, z: 22, ry: 0.35, dress: 0xb81e22, sleeves: 0x2a6a3a, colors: { shirt: 0xb81e22, legs: 0xf0d0b8, skin: 0xf4d4bc, hair: 0x0e0a08, shoes: 0x1a1a1a }, from: 5 });
 		const hd = ame.userData.limbs.head;
@@ -1976,9 +2032,9 @@ export const REELS = {
 			shots: [
 				{ pos: [cx + 0.6, 1.95, 0.9], look: [cx + 0.1, 1.7, -1], fov: 45, fog: [0x3a3428, 4, 20] },
 				{ pos: [bx + 0.55, 0.75, 0.75], look: [bx, 0.3, 0], fov: 38, fog: [0x2a1a10, 2, 20], filter },
-				{ pos: [0.6, 0.9, gz + 2.4], look: [0, 0.7, gz], fov: 40, fog: [0xd8e0a8, 10, 60], filter },
 				{ pos: [0.8, 1.5, mz + 4], look: [0, 0.6, mz - 0.4], fov: 50, fog: [0x3a4a3a, 6, 40], filter, exposure: 1.2 },
 				{ pos: [-4, 3.5, 20], look: [-14, 3.5, 4], fov: 45, filter },
+				{ pos: [0.6, 0.9, gz + 2.4], look: [0, 0.7, gz], fov: 40, fog: [0xd8e0a8, 10, 60], filter },
 				{ pos: [3.4, 1.4, 26.2], look: [-2, 11, -50], fov: 50, filter },
 			],
 		};
