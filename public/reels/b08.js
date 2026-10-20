@@ -1021,7 +1021,7 @@ export const REELS = {
 		k.plane(0.6, 0.45, parcel, { x: px, y: 1.515, z: pz, rx: -PI / 2, rz: 0.3 });
 		[[3, 33, 0.8], [8.5, 36, -0.4], [4.6, 37, 1.2]].forEach(([x, z, ry], i) => k.box(0.5 + i * 0.1, 0.3, 0.4, i === 1 ? 0xf0f0ea : kraft, { x, y: 1.25, z, ry, rz: 0.1 }));
 		// Out to sea: the raft with its ribbed panel sail, and the volleyball adrift.
-		const raft = k.group({ x: 20, y: 0, z: 78, ry: 0.3, from: 4 });
+		const raft = k.group({ x: 20, y: 0, z: 78, ry: 0.3, from: 5 });
 		for (let i = 0; i < 6; i++) k.cyl(0.18, 0.18, 4, 0x8a6a40, { x: -1.0 + i * 0.4, y: 0.2, rx: PI / 2, parent: raft });
 		k.cyl(0.07, 0.07, 4.2, 0x7a5a38, { y: 2.3, parent: raft });
 		const ribs = k.canvas(128, 128, (g, w, h) => {
@@ -1126,40 +1126,154 @@ export const REELS = {
 		k.disc(0xf8f4e0, 5, { x: fx - 10, y: 24, z: 80 });
 		k.particles(120, 0xffb040, { x: fx, y: 1, box: [1.5, 6, 1.5], speed: -1.5, size: 0.05, opacity: 0.9 });
 
-		// Close-up: a few coconuts and a flat stone on a patch of sand.
-		const nz = 700;
-		k.ground(60, 0xd8c49a, { z: nz, bump: 0.12, seg: 30 });
-		const husk = k.canvas(128, 128, (g, w, h) => {
-			g.fillStyle = "#6a4a2a";
-			g.fillRect(0, 0, w, h);
-			g.strokeStyle = "#4a3018";
-			g.lineWidth = 2;
-			for (let i = 0; i < 60; i++) {
-				const x = (i * 37) % w, y = (i * 53) % h;
+		// Shot 1: a parcel depot at night, boxes riding a sorting conveyor under a big wall clock.
+		const dz = 700;
+		const depot = k.group({ z: dz, until: 0 });
+		k.box(40, 0.1, 30, 0x5a5c60, { y: -0.05, parent: depot, rough: 0.9 });
+		k.box(40, 10, 0.3, 0x8a8c90, { y: 5, z: -12, parent: depot });
+		k.box(0.3, 10, 30, 0x7a7c80, { x: -10, y: 5, parent: depot });
+		for (let i = 0; i < 5; i++) k.box(40, 0.4, 0.3, 0x4a4c50, { y: 8.5, z: -10 + i * 5, parent: depot, metal: 0.5 });
+		const belt = (x, ry, len) => {
+			const b = k.group({ x, ry, parent: depot });
+			k.box(1.6, 0.12, len, 0x1e1e20, { y: 0.95, parent: b, rough: 0.6 });
+			[-0.86, 0.86].forEach((sx) => k.box(0.12, 0.3, len, 0x9a9ca2, { x: sx, y: 0.98, parent: b, metal: 0.6, rough: 0.4 }));
+			for (let z = -len / 2 + 1; z < len / 2; z += 2.5) [-0.8, 0.8].forEach((sx) => k.box(0.1, 0.9, 0.1, 0x6a6c72, { x: sx, y: 0.45, z, parent: b, metal: 0.5 }));
+			return b;
+		};
+		const b1 = belt(0, 0, 26);
+		const b2 = belt(-4.5, 0, 26);
+		const kr = rng(92);
+		const boxes = [];
+		[b1, b2].forEach((b, bi) => {
+			for (let i = 0; i < 9; i++) {
+				const w = 0.5 + kr() * 0.5, h = 0.25 + kr() * 0.4, d = 0.4 + kr() * 0.5;
+				const m = k.box(w, h, d, kr() > 0.7 ? 0xf0f0ea : [0xc89a62, 0xb88a52, 0xd8aa72][i % 3], { x: (kr() - 0.5) * 0.6, y: 1.02 + h / 2, z: -11 + i * 2.8, ry: (kr() - 0.5) * 0.6, parent: b });
+				k.plane(Math.min(w, d) * 0.6, Math.min(w, d) * 0.4, 0xf8f8f8, { y: h / 2 + 0.005, rx: -PI / 2, parent: m });
+				boxes.push([m, bi]);
+			}
+		});
+		k.tick((t) => boxes.forEach(([m, bi], i) => (m.position.z = -12 + (((i % 9) * 2.8 + t * (bi ? 0.9 : 1.2)) % 25))));
+		// A scanner arch over the near belt.
+		k.box(0.2, 2.2, 0.4, 0x3a3c42, { x: -0.95, y: 1.6, z: 3, parent: depot });
+		k.box(0.2, 2.2, 0.4, 0x3a3c42, { x: 0.95, y: 1.6, z: 3, parent: depot });
+		k.box(2.1, 0.3, 0.5, 0x3a3c42, { y: 2.7, z: 3, parent: depot });
+		k.box(1.6, 0.04, 0.05, 0xff3020, { y: 2.53, z: 3, parent: depot, emissive: 0xff2010, glow: 1.5 });
+		// The clock: everything here runs on time.
+		const face = k.canvas(256, 256, (g, w) => {
+			g.fillStyle = "#f8f6f0";
+			g.beginPath();
+			g.arc(128, 128, 124, 0, PI * 2);
+			g.fill();
+			g.strokeStyle = "#111";
+			g.lineWidth = 8;
+			g.stroke();
+			for (let i = 0; i < 12; i++) {
+				const a = (i / 12) * PI * 2;
+				g.lineWidth = 6;
 				g.beginPath();
-				g.moveTo(x, y);
-				g.lineTo(x + 6, y + 18);
+				g.moveTo(128 + Math.cos(a) * 96, 128 + Math.sin(a) * 96);
+				g.lineTo(128 + Math.cos(a) * 112, 128 + Math.sin(a) * 112);
+				g.stroke();
+			}
+			g.lineWidth = 9;
+			g.beginPath();
+			g.moveTo(128, 128);
+			g.lineTo(128 + Math.cos(-PI / 2 + PI * 2 * (11.8 / 12)) * 60, 128 + Math.sin(-PI / 2 + PI * 2 * (11.8 / 12)) * 60);
+			g.stroke();
+			g.lineWidth = 5;
+			g.beginPath();
+			g.moveTo(128, 128);
+			g.lineTo(128 + Math.cos(-PI / 2 + PI * 2 * (58 / 60)) * 92, 128 + Math.sin(-PI / 2 + PI * 2 * (58 / 60)) * 92);
+			g.stroke();
+			g.strokeStyle = "#c02010";
+			g.lineWidth = 2;
+			g.beginPath();
+			g.moveTo(128, 128);
+			g.lineTo(128 + Math.cos(0.4) * 100, 128 + Math.sin(0.4) * 100);
+			g.stroke();
+		});
+		k.cyl(1.6, 1.6, 0.2, 0x2a2a2a, { x: -2.5, y: 6.2, z: -11.75, rx: PI / 2, parent: depot, seg: 24 });
+		k.plane(3, 3, k.mat(0xffffff, { map: face, emissive: 0x404040, glow: 0.4 }), { x: -2.5, y: 6.2, z: -11.62, parent: depot });
+		for (let i = 0; i < 3; i++) {
+			k.box(3, 0.1, 0.5, 0xf8f8ff, { x: -2.2, y: 8.2, z: -6 + i * 6, parent: depot, emissive: 0xf0f4ff, glow: 1 });
+			k.point(0xf0f4ff, 16, 16, { x: -2.2, y: 7.8, z: dz - 6 + i * 6, until: 0 });
+		}
+		// Shot 2: an open pocket watch on a desk, a woman's photo in its lid.
+		const wz = -700;
+		const desk = k.group({ z: wz, from: 1, until: 1 });
+		const grain = k.canvas(256, 256, (g, w, h) => {
+			g.fillStyle = "#6a3e22";
+			g.fillRect(0, 0, w, h);
+			for (let i = 0; i < 40; i++) {
+				g.strokeStyle = i % 2 ? "#5a3218" : "#7a4a2a";
+				g.lineWidth = 2 + (i % 3);
+				g.beginPath();
+				g.moveTo(0, i * 7);
+				g.bezierCurveTo(80, i * 7 + 6, 160, i * 7 - 6, 256, i * 7 + 3);
 				g.stroke();
 			}
 		});
-		const hm = k.mat(0xffffff, { map: husk, rough: 1 });
-		[[-0.5, -0.3, 0.2], [0.35, -0.6, 1.1], [-1.1, -1.1, 2.0]].forEach(([x, z, ry]) => k.sphere(0.22, hm, { x, y: 0.18, z: nz + z, ry, s: [1, 0.92, 1.1], seg: 12, rings: 9 }));
-		[[0.45, 0.25, 0.4], [-0.15, 0.45, -1.4]].forEach(([x, z, rz]) => {
-			const half = k.group({ x, y: 0.12, z: nz + z, rz, rx: -0.3 });
-			k.mesh(new k.THREE.SphereGeometry(0.21, 12, 8, 0, PI * 2, PI / 2, PI / 2), k.mat(0x5a3a20, { side: k.THREE.DoubleSide }), { parent: half });
-			k.cyl(0.19, 0.19, 0.01, 0xf4f0e4, { y: -0.01, parent: half, seg: 14 });
+		k.box(4, 0.1, 3, k.mat(0xffffff, { map: grain, rough: 0.5 }), { y: -0.05, parent: desk });
+		const watch = k.group({ ry: -0.25, parent: desk });
+		const gold = k.mat(0xd8a838, { metal: 0.85, rough: 0.3, flat: false });
+		k.cyl(0.32, 0.32, 0.08, gold, { y: 0.04, parent: watch, seg: 28 });
+		const dialTex = k.canvas(128, 128, (g) => {
+			g.fillStyle = "#f8f2e0";
+			g.beginPath();
+			g.arc(64, 64, 62, 0, PI * 2);
+			g.fill();
+			g.fillStyle = "#222";
+			g.font = "bold 14px Georgia, serif";
+			g.textAlign = "center";
+			["XII", "III", "VI", "IX"].forEach((n, i) => g.fillText(n, 64 + Math.sin((i * PI) / 2) * 46, 69 - Math.cos((i * PI) / 2) * 46));
+			g.strokeStyle = "#111";
+			g.lineWidth = 3;
+			g.beginPath();
+			g.moveTo(64, 64);
+			g.lineTo(64 + 30, 64 - 12);
+			g.moveTo(64, 64);
+			g.lineTo(64 - 8, 64 - 42);
+			g.stroke();
 		});
-		k.ico(0.35, 0x8a847a, { x: 1.0, y: 0.08, z: nz - 0.2, s: [1.3, 0.35, 1], rough: 1 });
-		[[-1.6, 0.4], [1.4, -1.2], [0.9, 0.9], [-0.6, 1.2]].forEach(([x, z], i) => k.ico(0.06 + (i % 2) * 0.04, 0xb0a490, { x, y: 0.03, z: nz + z }));
-		tube(k, [-2.4, 0.04, nz - 0.4], [-0.9, 0.04, nz + 0.6], 0.03, 0x9a8460);
-		k.point(0xfff0d0, 10, 12, { x: 2, y: 4, z: nz + 2 });
+		k.cyl(0.28, 0.28, 0.01, k.mat(0xffffff, { map: dialTex, rough: 0.4 }), { y: 0.085, parent: watch, seg: 28 });
+		k.torus(0.07, 0.02, gold, { x: 0.4, y: 0.04, rx: PI / 2, parent: watch, seg: 14 });
+		k.cyl(0.04, 0.04, 0.06, gold, { x: 0.34, y: 0.04, rz: PI / 2, parent: watch });
+		// The lid, hinged at the back and propped open, with her photo inside.
+		const lid = k.group({ z: -0.3, y: 0.06, rx: 1.15, parent: watch });
+		k.cyl(0.32, 0.32, 0.04, gold, { z: -0.32, parent: lid, seg: 28 });
+		const photo = k.canvas(128, 128, (g) => {
+			g.fillStyle = "#c8b898";
+			g.fillRect(0, 0, 128, 128);
+			g.fillStyle = "#6a4a2a";
+			g.beginPath();
+			g.ellipse(64, 58, 34, 40, 0, 0, PI * 2);
+			g.fill();
+			g.fillStyle = "#e8c8a8";
+			g.beginPath();
+			g.ellipse(64, 62, 22, 28, 0, 0, PI * 2);
+			g.fill();
+			g.fillStyle = "#5a7a9a";
+			g.fillRect(28, 96, 72, 32);
+			g.fillStyle = "#3a2a1a";
+			[54, 74].forEach((x) => g.fillRect(x - 3, 56, 6, 4));
+			g.fillStyle = "#b85a5a";
+			g.fillRect(57, 74, 14, 4);
+		});
+		k.mesh(new k.THREE.CircleGeometry(0.27, 28), k.mat(0xffffff, { map: photo, rough: 0.6 }), { z: -0.32, y: 0.022, rx: -PI / 2, parent: lid });
+		// The chain trailing across the desk, and a pager beside it.
+		for (let i = 0; i < 14; i++) k.torus(0.03, 0.008, gold, { x: 0.48 + i * 0.06, y: 0.012, z: 0.05 + Math.sin(i * 0.5) * 0.12, rx: PI / 2, ry: i % 2 ? 0 : PI / 2, parent: watch, seg: 8 });
+		k.box(0.5, 0.12, 0.3, 0x2a2a2e, { x: 0.95, y: 0.06, z: -0.2, ry: 0.4, parent: desk });
+		k.box(0.3, 0.01, 0.14, 0x8aa080, { x: 0.95, y: 0.125, z: -0.2, ry: 0.4, parent: desk, emissive: 0x2a3a20, glow: 0.6 });
+		k.box(0.7, 0.02, 0.9, 0xf4f0e0, { x: -0.9, y: 0.01, z: 0.25, ry: 0.2, parent: desk });
+		k.point(0xffe0b0, 6, 6, { x: 0.6, y: 2, z: wz + 1.2, from: 1, until: 1 });
+		k.point(0xd8e4ff, 2, 6, { x: -1.5, y: 1.5, z: wz - 1, from: 1, until: 1 });
 		return {
 			shots: [
-				{ pos: [cx + 4, 2.2, 7], look: [cx - 4, 1.4, -10], fov: 50, fog: [0x0e1824, 5, 110], exposure: 1.4 },
-				{ pos: [0.6, 1.7, nz + 2.2], look: [0, 0.1, nz - 0.2], fov: 45, fog: [0xe8dcc0, 6, 40], hide: ["sky"] },
+				{ pos: [1.6, 1.9, dz + 12], look: [-1.8, 2.2, dz - 4], fov: 50, fog: [0x2a2c30, 12, 60], exposure: 1.1 },
+				{ pos: [0.3, 1.15, wz + 1.25], look: [0.05, 0.22, wz - 0.1], fov: 40, fog: [0x1a120c, 3, 12], exposure: 1.15 },
 				{ pos: [px + 0.5, 2.35, pz + 0.75], look: [px, 1.4, pz], fov: 40 },
+				{ pos: [cx + 4, 2.2, 7], look: [cx - 4, 1.4, -10], fov: 50, fog: [0x0e1824, 5, 110], exposure: 1.4 },
 				{ pos: [fx + 6, 1.6, 8], look: [fx + 0.6, 1.6, 0], fov: 45, fog: [0x0c1624, 6, 90], exposure: 1.3 },
-				{ pos: [25, 1.6, 86], look: [17, 2.6, 70], fov: 50 },
 				{ pos: [12.4, 1.2, 88.2], look: [15.4, 0.95, 81], fov: 45 },
 			],
 		};

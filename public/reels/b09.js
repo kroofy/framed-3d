@@ -1818,6 +1818,12 @@ export const REELS = {
 		lois.userData.limbs.armL.rotation.z = -2.8;
 		lois.userData.limbs.legL.rotation.x = 0.3;
 		rod(k, [15.5, 61.3, -12], [14.7, 63.4, -12], 0.03, 0x2a2a2a, { from: 4 });
+		// Frame 5: he streaks up from below to catch her, red cape streaming behind.
+		const rescue = hero({ x: 16.6, y: 56.0, z: -10.6, ry: 2.6, rx: 0.45, s: 1.15, pose: "raise", from: 4, until: 4 });
+		rescue.userData.limbs.armL.rotation.set(0, 0, -0.35);
+		rescue.userData.limbs.armR.rotation.set(0.3, 0, 2.9);
+		rescue.userData.limbs.legL.rotation.x = 0.25;
+		k.plane(0.95, 1.4, k.mat(0xc81a1a, { side: k.THREE.DoubleSide }), { y: -0.55, z: -0.85, rx: 0.65, parent: rescue });
 		const fly = k.group({ x: 3, y: 81, z: 2, ry: 2.2, from: 5 });
 		const sup = hero({ rx: PI / 2 - 0.15, y: 0, z: -1, pose: "raise", parent: fly });
 		sup.userData.limbs.armL.rotation.set(0, 0, -0.15);
@@ -1887,7 +1893,7 @@ export const REELS = {
 				{ pos: [X + 0.5, 1.7, 1.6], look: [X - 0.05, 1.05, -0.1], fov: 46, fog: [0x2a2620, 4, 14], hide: ["sky", "stars"] },
 				{ pos: [I + 4, 3, 10], look: [I, 14, -30], fov: 55, fog: [0xd8e8f4, 30, 220], exposure: 1.0, hide: ["sky", "stars"] },
 				{ pos: [26, 86, 26], look: [0, 86, -21], fov: 45, hide: ["stars"] },
-				{ pos: [25, 58, -1], look: [13.5, 61.5, -12], fov: 48, hide: ["stars"] },
+				{ pos: [22.2, 56.4, -3.2], look: [15.6, 58.8, -11.4], fov: 56, hide: ["stars"] },
 				{ pos: [8.5, 79, 8.5], look: [0, 83.5, -4], fov: 50, hide: ["stars"] },
 			],
 		};

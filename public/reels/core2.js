@@ -302,27 +302,48 @@ export const REELS = {
 		k.cyl(0.05, 0.05, 0.5, 0x6a5a3a, { x: 0.95, y: 2.1, z: -0.4, parent: basement, metal: 0.7 });
 		k.point(0xffb070, 4, 9, { x: 301.8, y: 3.6, z: 1.8, until: 0 });
 		k.glow(0xffc080, 0.5, { x: 302.2, y: 3.9, z: 1.2, until: 0 });
-		// Shot 2: a small yellow car on a winding mountain road, seen from the air.
-		const vh = (x, z) => x * x * 0.008 + Math.sin(z * 0.05) * 2 + Math.max(0, x - 20) * 0.6;
-		const valley = k.group({ z: -400, from: 1, until: 1 });
-		k.ground(300, 0x3a5a2e, { parent: valley, bump: 1.5, seg: 60, height: (x, z) => vh(x, z) });
-		const rx = (z) => 8 * Math.sin(z * 0.04);
-		for (let z = -120; z < 120; z += 2) {
-			const x = rx(z);
-			k.box(4.5, 0.2, 2.3, 0x5a5a58, { x, y: vh(x, z) + 0.25, z, ry: Math.atan(8 * 0.04 * Math.cos(z * 0.04)), parent: valley, shadow: false });
-		}
-		const tr = rng(17);
-		for (let i = 0; i < 260; i++) {
-			const x = (tr() - 0.5) * 140, z = (tr() - 0.5) * 240;
-			if (Math.abs(x - rx(z)) < 5) continue;
-			const h = 4 + tr() * 4;
-			k.cone(h * 0.28, h, 0x1e3a22, { x, y: vh(x, z) + h * 0.45, z, seg: 6, parent: valley });
-		}
-		const cz = 10, cx = rx(cz);
-		const car = k.group({ x: cx, y: vh(cx, cz) + 0.35, z: cz, ry: Math.atan(8 * 0.04 * Math.cos(cz * 0.04)), parent: valley });
-		k.box(1.6, 0.6, 3.2, 0xf2c220, { y: 0.4, parent: car });
-		k.sphere(0.8, 0xf2c220, { y: 0.75, z: -0.1, s: [1, 0.6, 1.5], parent: car });
-		k.point(0xfff8f0, 2.2, 600, { x: 40, y: 120, z: -380, decay: 0, from: 1, until: 1 });
+		// Shot 2: the hotel's dry-goods pantry, shelves of catering cans and a bolted steel door.
+		const pantry = k.group({ z: -400, from: 1, until: 1 });
+		k.box(10, 0.1, 10, 0x8a8478, { y: -0.05, parent: pantry, rough: 1 });
+		k.box(10, 4, 0.2, 0xd8d4c4, { y: 2, z: -2.6, parent: pantry });
+		k.box(0.2, 4, 10, 0xd0ccbc, { x: -2.6, y: 2, parent: pantry });
+		k.box(0.2, 4, 10, 0xd0ccbc, { x: 2.6, y: 2, parent: pantry });
+		k.box(10, 0.2, 10, 0xe8e4d8, { y: 4, parent: pantry });
+		const labels = ["#c83a2a", "#2a6a3a", "#e8b030", "#2a4a8a", "#e86a20"];
+		const canTex = labels.map((c) =>
+			k.canvas(128, 64, (g, w, h) => {
+				g.fillStyle = c;
+				g.fillRect(0, 0, w, h);
+				g.fillStyle = "#f8f4e8";
+				g.fillRect(0, 22, w, 20);
+				g.fillStyle = c;
+				g.fillRect(20, 28, 88, 8);
+			}),
+		);
+		const cr = rng(11);
+		const shelf = (x, z, ry) => {
+			const s = k.group({ x, z, ry, parent: pantry });
+			[-1.1, 1.1].forEach((sx) => [-0.3, 0.3].forEach((sz) => k.box(0.06, 3.4, 0.06, 0x9a9ca0, { x: sx, y: 1.7, z: sz, parent: s, metal: 0.6 })));
+			for (let r = 0; r < 4; r++) {
+				const y = 0.3 + r * 0.85;
+				k.box(2.3, 0.05, 0.66, 0xb0b2b6, { y, parent: s, metal: 0.5 });
+				for (let c = 0; c < 6; c++) {
+					if (cr() < 0.15) continue;
+					const t = Math.floor(cr() * labels.length);
+					const big = r < 2;
+					k.cyl(big ? 0.17 : 0.12, big ? 0.17 : 0.12, big ? 0.4 : 0.26, k.mat(0xffffff, { map: canTex[t] }), { x: -0.9 + c * 0.36, y: y + (big ? 0.225 : 0.155), z: (cr() - 0.5) * 0.2, ry: cr() * 6, parent: s, seg: 14 });
+				}
+			}
+		};
+		shelf(-1.8, -1.0, PI / 2);
+		shelf(-0.2, -2.1, 0);
+		shelf(1.8, -1.0, -PI / 2);
+		[[-0.9, 0.2], [-0.4, 0.5], [-1.0, 0.8]].forEach(([x, z], i) => k.box(0.55, 0.35, 0.4, 0xe8dcc0, { x, y: 0.175 + (i === 2 ? 0.35 : 0), z, ry: i * 0.4, parent: pantry, rough: 1 }));
+		// The bulb.
+		k.cyl(0.01, 0.01, 0.5, 0x111111, { y: 3.75, parent: pantry });
+		k.sphere(0.09, 0xfff4d0, { y: 3.45, parent: pantry, emissive: 0xfff0c0, glow: 1.5 });
+		k.point(0xfff0d0, 9, 9, { x: 0, y: 3.3, z: -399.4, from: 1, until: 1 });
+		k.point(0xe0e8ff, 3, 8, { x: 0, y: 2, z: -396.5, from: 1, until: 1 });
 		// Room 237.
 		const doorTex = k.canvas(256, 512, (g) => {
 			g.fillStyle = "#6a2a14";
@@ -393,7 +414,7 @@ export const REELS = {
 		return {
 			shots: [
 				{ pos: [302.4, 2.2, 2.6], look: [299.6, 1.6, -1.2], fov: 45, fog: [0x1e1a16, 8, 30], exposure: 1.3 },
-				{ pos: [36, 60, -320], look: [rx(10), 2, -390], fov: 45, fog: [0xb8c8d8, 60, 260] },
+				{ pos: [0.3, 1.7, -396.2], look: [-0.3, 1.4, -401.5], fov: 55, fog: [0x2a2620, 8, 30], exposure: 1.15 },
 				{ pos: [30, 60, 460], look: [0, 0, 400], fov: 45, fog: [0xc8d4e4, 80, 320], exposure: 1.3 },
 				{ pos: [-0.8, 0.7, 2.4], look: [0.6, 0.6, -6], fov: 50 },
 				{ pos: [0, 1.4, -50], look: [0, 1.1, -64], fov: 40, fog: [0x2a1810, 20, 80] },

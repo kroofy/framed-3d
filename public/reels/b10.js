@@ -488,26 +488,47 @@ function r109(k) {
 	bentArm(k, bp, -1, [-0.36, 1.12, 0.22], [0.2, 1.5, 0.2], 0x1c1c24);
 	bentArm(k, bp, 1, [0.36, 1.12, 0.26], [-0.2, 1.5, 0.25], 0x1c1c24);
 	k.point(0xffe0c0, 4, 10, { x: W + 1, y: 4.5, z: 93, from: 5 });
-	// The garden of glowing purple flowers, in a cave.
-	const cave = k.group({ x: -400 });
-	k.ground(40, 0x1e1a24, { parent: cave, bump: 0.3, seg: 16 });
-	for (let i = 0; i < 18; i++) {
-		const a = (i / 18) * PI * 2;
-		k.ico(3 + r() * 3, 0x2a2434, { x: Math.cos(a) * 9, y: 2, z: Math.sin(a) * 9, parent: cave });
-		k.cone(0.4, 2 + r() * 2, 0x3a3046, { x: Math.cos(a) * 6, y: 7, z: Math.sin(a) * 6, rx: PI, parent: cave, seg: 5 });
+	// Close-up: the panther helmet, silver eyes and the silver claw necklace, kinetic purple glowing in the suit.
+	const bust = k.group({ x: -400, from: 4, until: 4 });
+	k.box(40, 0.2, 40, 0x14121a, { y: -0.1, parent: bust });
+	k.box(40, 20, 0.4, 0x1c1828, { y: 10, z: -6, parent: bust });
+	const suit = k.mat(0x1a1a22, { rough: 0.6, metal: 0.2, flat: false });
+	const silver = k.mat(0xdfe4ee, { rough: 0.25, metal: 0.8, emissive: 0x50505c, glow: 1 });
+	const kin = k.mat(0xb070ff, { emissive: 0x9a50ff, glow: 1.4 });
+	// Shoulders and chest.
+	k.cyl(1.75, 1.4, 2.3, suit, { y: 1.15, s: [1, 1, 0.58], parent: bust, seg: 24 });
+	[-1, 1].forEach((s) => k.sphere(0.8, suit, { x: s * 1.75, y: 1.95, s: [1, 0.65, 0.85], parent: bust }));
+	k.cyl(0.6, 0.75, 0.8, suit, { y: 2.5, parent: bust, seg: 16 });
+	// The necklace: a silver ring of claws round the collar.
+	k.torus(0.95, 0.07, silver, { y: 2.38, z: 0.1, s: [1, 1.05, 1], rx: PI / 2 - 0.3, parent: bust, seg: 36 });
+	for (let i = 0; i < 15; i++) {
+		const a = PI * 0.05 + (i / 14) * PI * 0.9;
+		k.cone(0.07, 0.36, silver, { x: Math.cos(a) * 0.95, y: 2.2 - Math.sin(a) * 0.3, z: 0.42 + Math.sin(a) * 0.66, rx: PI - 0.3, parent: bust, seg: 4 });
 	}
-	k.box(30, 1, 30, 0x2a2434, { y: 8, parent: cave });
-	const herb = k.mat(0xc070ff, { emissive: 0x8a30ff, glow: 1.1, rough: 0.4 });
-	for (let i = 0; i < 26; i++) {
-		const x = (r() - 0.5) * 6;
-		const z = (r() - 0.5) * 6 - 1;
-		const h = 0.5 + r() * 0.6;
-		k.cyl(0.02, 0.03, h, 0x2a5a3a, { x, y: h / 2, z, parent: cave, seg: 5 });
-		for (let j = 0; j < 3; j++) k.mesh(heartGeo(k, 0.22, 0.02), herb, { x: x + Math.cos(j * 2.1) * 0.08, y: h + 0.02, z: z + Math.sin(j * 2.1) * 0.08, ry: j * 2.1, rx: -0.6, parent: cave });
-		if (i % 3 === 0) k.glow(0xb060ff, 1.2, { x, y: h + 0.1, z, parent: cave });
-	}
-	k.point(0xb070ff, 8, 14, { y: 2.2, z: 1, parent: cave });
-	k.point(0x7a90ff, 4, 14, { x: 2, y: 3, z: -2, parent: cave });
+	// Kinetic lines: a V down the chest and along the shoulders.
+	[-1, 1].forEach((s) => {
+		k.box(0.06, 1.5, 0.04, kin, { x: s * 0.5, y: 1.15, z: 1.02, rz: s * 0.45, parent: bust });
+		k.box(1.0, 0.05, 0.04, kin, { x: s * 1.2, y: 1.85, z: 0.92, rz: -s * 0.25, ry: -s * 0.35, parent: bust });
+	});
+	// The head.
+	const head = k.group({ y: 3.45, parent: bust });
+	k.sphere(0.95, suit, { s: [0.88, 1.08, 0.98], parent: head, seg: 20, rings: 14 });
+	k.sphere(0.55, suit, { y: -0.45, z: 0.42, s: [1, 0.85, 0.95], parent: head });
+	[-1, 1].forEach((s) => {
+		k.cone(0.24, 0.55, suit, { x: s * 0.55, y: 0.92, z: -0.05, rz: -s * 0.35, parent: head, seg: 4 });
+		k.cone(0.12, 0.3, 0x2a2a34, { x: s * 0.52, y: 0.88, z: 0.04, rz: -s * 0.35, parent: head, seg: 4 });
+		// Silver eye slits, angled up and out.
+		k.box(0.46, 0.13, 0.08, k.mat(0xf4f6ff, { emissive: 0xc8ccdc, glow: 1 }), { x: s * 0.3, y: 0.12, z: 0.86, rz: s * 0.3, ry: s * 0.35, parent: head });
+		// Silver triangle tracery over the brow and down the cheeks.
+		k.box(0.04, 0.7, 0.03, silver, { x: s * 0.24, y: 0.55, z: 0.76, rz: s * 0.45, rx: -0.35, parent: head });
+		k.box(0.04, 0.55, 0.03, silver, { x: s * 0.52, y: -0.25, z: 0.66, rz: -s * 0.25, ry: s * 0.5, parent: head });
+	});
+	k.box(0.04, 0.5, 0.03, silver, { y: 0.7, z: 0.8, rx: -0.4, parent: head });
+	k.sphere(0.1, 0x0a0a0e, { y: -0.3, z: 0.93, s: [1.3, 0.7, 0.8], parent: head });
+	k.box(0.5, 0.03, 0.03, 0x3a3a46, { y: -0.6, z: 0.85, parent: head });
+	k.spot(0xfff0e0, 70, { x: -398.5, y: 7, z: 6, target: [-400, 3.4, 0], angle: 0.4, distance: 25, from: 4, until: 4 });
+	k.point(0xa060ff, 14, 10, { x: -403, y: 4, z: 1, from: 4, until: 4 });
+	k.point(0x8090ff, 6, 10, { x: -396.5, y: 5, z: 2, from: 4, until: 4 });
 	// The mine of glowing blue ore.
 	const mine = k.group({ x: -400, z: 200 });
 	k.box(12, 0.4, 60, 0x2a2a30, { y: -0.2, parent: mine });
@@ -530,7 +551,7 @@ function r109(k) {
 			{ pos: [W + 80, 70, 150], look: [W, 25, -30], fov: 48 },
 			{ pos: [0, 3.5, 36], look: [0, 12, -12], fov: 55 },
 			{ pos: [1.2, 1.7, -8.2], look: [0, 2.6, -18], fov: 62 },
-			{ pos: [-399.2, 1.25, 1.9], look: [-400, 0.85, -0.6], fov: 40, fog: [0x1a0c2a, 3, 24], exposure: 1.35 },
+			{ pos: [-398.7, 3.3, 6.2], look: [-400, 3.0, 0], fov: 45, fog: [0x1a1226, 8, 30], exposure: 1.15 },
 			{ pos: [W + 0.9, 3.65, 94.4], look: [W, 3.3, 89.6], fov: 40 },
 		],
 	};
@@ -1776,7 +1797,7 @@ function r116(k) {
 	for (let i = 0; i < 6; i++) k.cyl(0.12, 0.12, 2, 0x5a4a38, { x: 14 + (i % 2 ? 1.3 : -1.3), y: -0.6, z: -15 + i * 3.6 });
 	const boat = k.group({ x: 17, y: 0.15, z: -12, ry: 0.3 });
 	k.box(1.4, 0.5, 3.6, 0xc84a3a, { y: 0.1, parent: boat });
-	// The lift in the lake.
+	// The lift: he holds her overhead (the ballroom finale).
 	const lifter = (o, dress) => {
 		const j = k.person({ colors: { shirt: 0x2a2a30, legs: 0x2a2a30, skin: 0xd8a888, hair: 0x2a1a10 }, ...o });
 		pose(j, { armL: [0, 0, -PI + 0.12], armR: [0, 0, PI - 0.12] });
@@ -1784,9 +1805,18 @@ function r116(k) {
 		pose(b, { legL: [0.15, 0, -0.05], legR: [0.15, 0, 0.05] });
 		return j;
 	};
-	const lake = lifter({ x: -4, y: -0.88, z: -10, ry: 0.5, from: 4, until: 4 }, 0xf2f2ee);
-	void lake;
-	for (let i = 0; i < 5; i++) k.torus(0.6 + i * 0.4, 0.03, 0xe8f4ff, { x: -4, y: 0.08, z: -10, rx: PI / 2, opacity: 0.5 - i * 0.08, from: 4, until: 4, shadow: false });
+	// Frame 5: the lift in the lake, side-on: he stands waist-deep, she lies stretched out flat above him, arms spread.
+	const LX = 60, LZ = -80;
+	const johnny = k.person({ x: LX, y: -1.0, z: LZ, ry: PI / 2 - 0.45, colors: { shirt: 0x26262c, legs: 0x26262c, skin: 0xd8a888, hair: 0x2a1a10 }, from: 4, until: 4 });
+	pose(johnny, { armL: [0, 0, -PI + 0.05], armR: [0, 0, PI - 0.05] });
+	const baby = k.person({ y: 2.36, z: -0.95, rx: PI / 2 - 0.08, pose: "arms-out", colors: { shirt: 0xf6f4ee, legs: 0xf0c8a8, skin: 0xf0c8a8, hair: 0x5a3018, shoes: 0xf0c8a8 }, parent: johnny });
+	pose(baby, { legL: [0, 0, -0.04], legR: [0, 0, 0.04], armL: [0, 0, -1.6], armR: [0, 0, 1.6] });
+	["legL", "legR"].forEach((n) => k.box(0.24, 0.32, 0.24, 0x7a9ac8, { y: -0.15, parent: baby.userData.limbs[n] }));
+	k.box(0.52, 0.12, 0.3, 0x7a9ac8, { y: 0.86, parent: baby });
+	baby.userData.limbs.head.rotation.x = -0.35;
+	for (let i = 0; i < 4; i++) k.torus(0.45 + i * 0.4, 0.025, 0xffffff, { x: LX, y: 0.1, z: LZ, rx: PI / 2, opacity: 0.45 - i * 0.1, from: 4, until: 4, shadow: false });
+	trees(k, 40, [LX - 40, LX + 40, -135, -117], { color: 0x2a5a2a, h: 13, seed: 8, from: 4 });
+	k.point(0xfff0d8, 6, 20, { x: LX - 2, y: 5, z: LZ + 6, from: 4, until: 4 });
 	// Frame 4: watermelons on a porch.
 	const P = k.group({ x: 300 });
 	k.box(20, 1, 20, 0x3a4a2a, { y: -0.5, parent: P });
@@ -1881,7 +1911,7 @@ function r116(k) {
 			{ pos: [604, 2.6, 6], look: [599, 1.4, -2], fov: 52, fog: [0x2a0e0a, 4, 30], exposure: 1.3 },
 			{ pos: [-294.5, 1.9, 6], look: [-300, 1.3, 0], fov: 45 },
 			{ pos: [301.2, 1.1, 1.1], look: [300.1, 0.55, -0.7], fov: 40, fog: [0x1a2214, 3, 20], exposure: 1.25 },
-			{ pos: [-2.0, 0.9, -14.2], look: [-4, 1.8, -10], fov: 48 },
+			{ pos: [60.4, 1.0, -75.4], look: [60.05, 1.3, -80], fov: 48, fog: [0xd8e0d8, 60, 300] },
 			{ pos: [-597.6, 2.8, 4.6], look: [-600, 2.5, 0], fov: 50, fog: [0x2a1810, 12, 60], exposure: 1.2 },
 		],
 	};

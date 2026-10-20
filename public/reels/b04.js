@@ -1806,18 +1806,140 @@ const REELS_B04 = {
 			const p = k.person({ x: Math.cos(a) * d, y: 0, z: Math.sin(a) * d, ry: rc() * 6, s: 0.9, coat: coats[i % 6], colors: { shirt: coats[i % 6], legs: 0x2a2a34, hair: 0x3a2a1a }, from: 2 });
 			k.sphere(0.23, coats[(i + 3) % 6], { y: 1.85, parent: p, s: [1, 0.8, 1] });
 		}
-		// The deep puddle at the kerb, and the foot that finds it.
-		k.cyl(1.2, 1.2, 0.02, 0x3a4658, { x: 6, y: 0.06, z: 17.6, s: [1, 1, 0.6], metal: 0.6, rough: 0.08, seg: 20 });
-		k.torus(1.2, 0.08, 0xc8ccd4, { x: 6, y: 0.06, z: 17.6, rx: PI / 2, s: [1, 0.6, 0.6], seg: 20 });
-		k.person({ x: 6.1, y: -0.32, z: 17.6, ry: -0.3, colors: { shirt: 0xb8946a, legs: 0x3a3a44, hair: 0x5a3a20, shoes: 0x3a2418 } });
-		for (let i = 0; i < 8; i++) k.sphere(0.04, 0xe8f0f8, { x: 6.1 + Math.cos(i) * 0.5, y: 0.15 + (i % 3) * 0.12, z: 17.6 + Math.sin(i) * 0.4, opacity: 0.8 });
-		const ripples = [0, 1, 2].map(() => k.torus(0.3, 0.012, 0xe0e8f0, { x: 6.1, y: 0.075, z: 17.6, rx: PI / 2, shadow: false }));
-		k.tick((t) => ripples.forEach((r, i) => {
-			const f = (t * 0.6 + i / 3) % 1;
-			r.scale.setScalar(0.4 + f * 2.4);
-			r.material.transparent = true;
-			r.material.opacity = 1 - f;
-		}));
+		// Shot 1: an empty TV studio, a blue chroma wall and the monitor showing the weather map.
+		const studio = k.group({ z: 330, until: 0 });
+		k.box(16, 0.1, 14, 0x3a3a40, { y: -0.05, parent: studio, rough: 0.6 });
+		k.box(16, 6, 0.2, 0x2a2a30, { y: 3, z: -5, parent: studio });
+		k.box(0.2, 6, 14, 0x2a2a30, { x: -6, y: 3, parent: studio });
+		k.box(7, 4.2, 0.1, 0x1a48d8, { x: 0.8, y: 2.1, z: -4.8, parent: studio, emissive: 0x0a2a90, glow: 0.5, rough: 1 });
+		k.box(7, 0.6, 1.2, 0x1a48d8, { x: 0.8, y: 0.3, z: -4.2, parent: studio, emissive: 0x0a2a90, glow: 0.4, rough: 1 });
+		const wx = k.canvas(512, 320, (g, w, h) => {
+			g.fillStyle = "#1e4a9a";
+			g.fillRect(0, 0, w, h);
+			g.fillStyle = "#5a9a4a";
+			g.beginPath();
+			[[40, 70], [150, 50], [300, 60], [420, 40], [470, 90], [440, 150], [400, 200], [380, 260], [330, 230], [250, 250], [200, 290], [150, 240], [70, 220], [30, 150]].forEach(([x, y]) => g.lineTo(x, y));
+			g.closePath();
+			g.fill();
+			g.save();
+			g.clip();
+			[["#c8e0f8", 0, 120], ["#e8e070", 120, 200], ["#e89040", 200, 320]].forEach(([c, y0, y1]) => {
+				g.fillStyle = c;
+				g.globalAlpha = 0.55;
+				g.fillRect(0, y0, w, y1 - y0);
+			});
+			g.restore();
+			g.globalAlpha = 1;
+			g.strokeStyle = "#1a3ad0";
+			g.lineWidth = 6;
+			g.beginPath();
+			g.moveTo(60, 110);
+			g.bezierCurveTo(170, 160, 280, 90, 450, 140);
+			g.stroke();
+			g.fillStyle = "#1a3ad0";
+			for (let i = 0; i < 7; i++) {
+				const x = 90 + i * 52, y = 130 + Math.sin(i) * 12;
+				g.beginPath();
+				g.moveTo(x - 12, y - 4);
+				g.lineTo(x + 12, y - 4);
+				g.lineTo(x, y + 16);
+				g.fill();
+			}
+			const cloud = (x, y) => {
+				g.fillStyle = "#ffffff";
+				[[0, 0, 22], [24, -8, 26], [50, 2, 20]].forEach(([dx, dy, r]) => {
+					g.beginPath();
+					g.arc(x + dx, y + dy, r, 0, PI * 2);
+					g.fill();
+				});
+			};
+			cloud(110, 80);
+			cloud(330, 70);
+			g.strokeStyle = "#ffffff";
+			g.lineWidth = 3;
+			[[130, 112], [160, 118], [350, 102], [380, 108]].forEach(([x, y]) => {
+				for (let a = 0; a < 3; a++) {
+					g.beginPath();
+					g.moveTo(x + Math.cos(a) * 8, y + Math.sin(a) * 8);
+					g.lineTo(x - Math.cos(a) * 8, y - Math.sin(a) * 8);
+					g.stroke();
+				}
+			});
+			g.fillStyle = "#ffd020";
+			g.beginPath();
+			g.arc(330, 220, 24, 0, PI * 2);
+			g.fill();
+			g.fillStyle = "#ffffff";
+			g.font = "bold 34px Helvetica, Arial, sans-serif";
+			g.fillText("28°", 210, 190);
+			g.fillText("41°", 380, 290);
+		});
+		const mon = k.group({ x: -2.6, z: -2.0, ry: 0.4, s: 1.35, parent: studio });
+		k.cyl(0.08, 0.08, 1.2, 0x1a1a1a, { y: 0.6, parent: mon, metal: 0.6 });
+		k.box(1.2, 0.08, 0.8, 0x1a1a1a, { y: 0.04, parent: mon });
+		k.box(2.0, 1.35, 0.4, 0x222226, { y: 1.85, parent: mon });
+		k.plane(1.8, 1.13, new k.THREE.MeshBasicMaterial({ map: wx }), { y: 1.85, z: 0.205, parent: mon });
+		// The studio camera on its pedestal, facing the empty blue wall.
+		const sc = k.group({ x: 2.2, z: 0.8, ry: 0.25, parent: studio });
+		k.cyl(0.6, 0.7, 0.2, 0x2a2a2e, { y: 0.15, parent: sc, seg: 10 });
+		k.cyl(0.12, 0.12, 1.3, 0x5a5a60, { y: 0.9, parent: sc, metal: 0.7 });
+		k.box(0.6, 0.6, 1.2, 0x8a8a90, { y: 1.75, parent: sc, metal: 0.4 });
+		k.cyl(0.22, 0.22, 0.4, 0x111111, { y: 1.75, z: -0.75, rx: PI / 2, parent: sc });
+		k.box(0.5, 0.4, 0.1, 0x111111, { y: 1.8, z: 0.62, parent: sc });
+		[[-1.6, -1.4], [3.4, -1.2]].forEach(([x, z]) => {
+			k.cyl(0.04, 0.04, 2.6, 0x2a2a2a, { x, y: 1.3, z, parent: studio });
+			k.cyl(0.25, 0.32, 0.5, 0x2a2a2a, { x, y: 2.75, z, rx: -1.1, parent: studio });
+			k.glow(0xfff4e0, 1.2, { x: x + 0.6 * Math.sign(-x), y: 2.6, z: z - 0.3, parent: studio });
+		});
+		k.point(0xfff4e0, 14, 14, { x: 0, y: 4, z: 332 });
+		k.point(0xd8e4ff, 6, 12, { x: -3, y: 3, z: 329, until: 0 });
+		// Shot 2: a small-town diner counter, the coffee pot on its warmer and a pie under glass.
+		const diner = k.group({ z: -330, from: 1, until: 1 });
+		const check = k.canvas(128, 128, (g) => {
+			for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
+				g.fillStyle = (x + y) % 2 ? "#e8e4d8" : "#2a2a2a";
+				g.fillRect(x * 16, y * 16, 16, 16);
+			}
+		});
+		check.wrapS = check.wrapT = k.THREE.RepeatWrapping;
+		check.repeat.set(4, 4);
+		k.box(14, 0.1, 10, k.mat(0xffffff, { map: check }), { y: -0.05, parent: diner });
+		k.box(14, 4, 0.2, 0xe8d8b0, { y: 2, z: -2.6, parent: diner });
+		k.box(14, 0.3, 0.22, 0x6a2a24, { y: 1.1, z: -2.48, parent: diner });
+		k.box(9, 1.0, 0.8, 0x8a2a24, { y: 0.5, parent: diner });
+		k.box(9.2, 0.08, 1.0, 0xd8d4c8, { y: 1.04, parent: diner, metal: 0.3, rough: 0.3 });
+		k.box(9.2, 0.06, 0.06, 0xc8ccd0, { y: 0.98, z: 0.5, parent: diner, metal: 0.8 });
+		for (let i = 0; i < 4; i++) {
+			const x = -3 + i * 2;
+			k.cyl(0.05, 0.05, 0.7, 0xc8ccd0, { x, y: 0.35, z: 1.0, parent: diner, metal: 0.8 });
+			k.cyl(0.25, 0.25, 0.12, 0xb82a24, { x, y: 0.76, z: 1.0, parent: diner, seg: 16 });
+		}
+		// Back bar: warmer with a glass coffee pot, mugs on a shelf.
+		k.box(0.9, 0.12, 0.45, 0x1a1a1a, { x: -0.6, y: 1.14, z: -0.1, parent: diner });
+		k.glow(0xff6020, 0.25, { x: -0.6, y: 1.21, z: 0.13, parent: diner });
+		const pot = k.group({ x: -0.6, y: 1.2, z: -0.1, parent: diner });
+		k.cyl(0.18, 0.2, 0.32, k.mat(0x3a1a0a, { rough: 0.1 }), { y: 0.16, parent: pot, seg: 14 });
+		k.cyl(0.14, 0.18, 0.12, k.mat(0xd8e8f0, { opacity: 0.45, rough: 0.05 }), { y: 0.38, parent: pot, seg: 14 });
+		k.cyl(0.11, 0.11, 0.06, 0xe06010, { y: 0.47, parent: pot, seg: 14 });
+		k.torus(0.1, 0.025, 0x111111, { x: 0.24, y: 0.25, parent: pot, seg: 12 });
+		[[0.35, 0.3], [0.75, 0.2], [-1.6, 0.3]].forEach(([x, z]) => {
+			k.cyl(0.08, 0.07, 0.15, 0xf4f0e8, { x, y: 1.16, z, parent: diner, seg: 10 });
+			k.cyl(0.07, 0.07, 0.01, 0x3a1a0a, { x, y: 1.235, z, parent: diner, seg: 10 });
+			k.torus(0.04, 0.015, 0xf4f0e8, { x: x + 0.09, y: 1.16, z, parent: diner, seg: 8 });
+			k.cyl(0.16, 0.16, 0.015, 0xf4f0e8, { x, y: 1.09, z, parent: diner, seg: 14 });
+		});
+		k.cyl(0.3, 0.3, 0.02, 0xd8d8d0, { x: 1.7, y: 1.1, z: 0, parent: diner, metal: 0.5, seg: 16 });
+		k.cyl(0.24, 0.26, 0.12, 0xd89a4a, { x: 1.7, y: 1.17, z: 0, parent: diner, seg: 16 });
+		k.sphere(0.32, k.mat(0xe8f0f8, { opacity: 0.3, rough: 0.05 }), { x: 1.7, y: 1.1, z: 0, s: [1, 1.1, 1], parent: diner });
+		k.cyl(0.04, 0.05, 0.16, 0xd8e8f0, { x: -1.15, y: 1.16, z: 0.25, parent: diner, opacity: 0.6 });
+		k.cyl(0.03, 0.03, 0.05, 0xc8ccd0, { x: -1.15, y: 1.27, z: 0.25, parent: diner, metal: 0.8 });
+		for (let i = 0; i < 6; i++) k.cyl(0.07, 0.06, 0.13, 0xf4f0e8, { x: -2.6 + i * 0.22, y: 2.1, z: -2.35, parent: diner, seg: 10 });
+		k.box(2, 0.05, 0.3, 0x6a4a30, { x: -2.05, y: 2.0, z: -2.38, parent: diner });
+		windowPane(k, 2.2, 1.2, 0xc8d8f0, { x: 2.2, y: 2.3, z: -2.48, parent: diner, glow: 0.7 });
+		k.box(2, 0.6, 0.05, 0xf4ecd8, { x: -0.6, y: 3.1, z: -2.47, parent: diner });
+		[0, 1, 2].forEach((r) => k.box(1.6, 0.04, 0.02, 0x3a2a1a, { x: -0.6, y: 3.25 - r * 0.13, z: -2.44, parent: diner }));
+		k.point(0xffe0b0, 10, 10, { x: 0, y: 3.2, z: -328.5, from: 1, until: 1 });
+		k.point(0xfff0d8, 4, 8, { x: -2, y: 2.2, z: -327, from: 1, until: 1 });
 		// The bed-and-breakfast room and the clock radio.
 		const room = k.group({ x: 300 });
 		k.box(8, 0.1, 8, 0x6a4a30, { y: -0.05, parent: room });
@@ -1953,8 +2075,8 @@ const REELS_B04 = {
 		k.point(0xfff0e0, 6, 20, { x: -298, y: 6, z: 6 });
 		return {
 			shots: [
-				{ pos: [303.3, 1.9, 2.8], look: [300.6, 0.8, -1.4], fov: 50 },
-				{ pos: [7.0, 1.5, 19.4], look: [6.1, 0.15, 17.4], fov: 40 },
+				{ pos: [2.6, 2.0, 335.2], look: [-1.0, 1.9, 327.5], fov: 50, fog: [0x1a1a20, 10, 40], exposure: 1.15 },
+				{ pos: [0.9, 1.6, -327.6], look: [0.2, 1.2, -330.3], fov: 48, fog: [0x2a2420, 8, 30], exposure: 1.1 },
 				{ pos: [7, 3.2, 15], look: [0, 3, -4], fov: 50 },
 				{ pos: [-300, 4, 24], look: [-300, 2.8, 0], fov: 45, fog: [0x5a6a8a, 25, 120] },
 				{ pos: [-298.2, 2.9, 4.6], look: [-300.3, 4.1, -1.5], fov: 48, fog: [0x5a6a8a, 25, 120] },

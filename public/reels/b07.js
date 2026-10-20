@@ -1289,23 +1289,7 @@ export const REELS = {
 		k.cyl(6, 6, 0.4, 0x3a3a3a, { y: H + 4.2, z: 2, parent: tw, seg: 20 });
 		k.point(0xffe0b0, 30, 120, { x: 0, y: 40, z: -10 });
 		k.spot(0xffe8c8, 120, { x: 0, y: 2, z: 10, target: [0, 90, -50], angle: 0.35, distance: 220 });
-		// Fire on the top floors.
-		const fire = k.group({ x: 0, y: H - 6, z: -46, from: 5 });
-		fireball(k, 7, { x: -6, parent: fire, seed: 1 });
-		fireball(k, 6, { x: 8, y: 4, parent: fire, seed: 2, light: false });
-		fireball(k, 9, { x: 0, y: 12, z: -8, parent: fire, seed: 3 });
-		// Helicopters, police and the limo.
-		const chopper = (o) => {
-			const g = k.group(o);
-			k.capsule(1.2, 2.6, 0x1a1a20, { rx: PI / 2, parent: g });
-			k.box(0.4, 0.5, 5, 0x1a1a20, { y: 0.4, z: -3.8, parent: g });
-			k.box(12, 0.06, 0.3, 0x0a0a0a, { y: 1.6, parent: g });
-			k.glow(0xff2020, 1, { y: -1, z: -6, parent: g });
-			k.spot(0xffffff, 40, { y: -1, z: 1, parent: g, target: [o.x - 5, 60, -50], angle: 0.12, distance: 120 });
-			return g;
-		};
-		chopper({ x: 50, y: 150, z: -20, ry: -0.8, from: 5 });
-		chopper({ x: -60, y: 130, z: -10, ry: 0.9, from: 5 });
+		// Police and the limo.
 		const plaza = k.group({ x: 0, z: -20 });
 		k.box(60, 0.3, 30, 0x5a5650, { y: 0.15, parent: plaza });
 		for (let i = 0; i < 6; i++) {
@@ -1377,6 +1361,59 @@ export const REELS = {
 		});
 		k.sphere(0.04, 0x8a0a0a, { x: 0.3, y: 0.01, z: 0.5, s: [1.6, 0.2, 1], parent: glass });
 		k.spot(0xfff0e0, 20, { x: 301, y: 4, z: 2, target: [300, 0, 0], angle: 0.4 });
+		// Shot 6: McClane himself, on the unfinished floor: filthy white vest, bare bloody feet, pistol and radio.
+		const site = k.group({ z: 300, from: 5 });
+		k.box(30, 0.2, 20, 0x8a8680, { y: -0.1, parent: site, rough: 1 });
+		k.box(30, 0.3, 20, 0x6a6660, { y: 4.6, parent: site, rough: 1 });
+		k.box(30, 4.6, 0.3, 0x7a7670, { y: 2.3, z: 7, parent: site, rough: 1 });
+		// The window wall behind him: night LA through big panes.
+		const la = k.canvas(512, 256, (g, w, h) => {
+			const grd = g.createLinearGradient(0, 0, 0, h);
+			grd.addColorStop(0, "#0a1230");
+			grd.addColorStop(1, "#3a3a6a");
+			g.fillStyle = grd;
+			g.fillRect(0, 0, w, h);
+			const r = rng(86);
+			for (let i = 0; i < 40; i++) {
+				const bx = r() * w, bw = 10 + r() * 30, bh = 40 + r() * 140;
+				g.fillStyle = "#141826";
+				g.fillRect(bx, h - bh, bw, bh);
+				g.fillStyle = "#ffd890";
+				for (let j = 0; j < 12; j++) if (r() > 0.4) g.fillRect(bx + 2 + r() * (bw - 6), h - bh + r() * bh, 3, 3);
+			}
+		});
+		k.plane(30, 4.4, new k.THREE.MeshBasicMaterial({ map: la, fog: false }), { y: 2.3, z: -6, parent: site });
+		for (let i = 0; i < 8; i++) k.box(0.25, 4.4, 0.25, 0x4a4a50, { x: -14 + i * 4, y: 2.3, z: -5.9, parent: site, metal: 0.4 });
+		[-4.5, 4.5].forEach((x) => k.box(0.9, 4.5, 0.9, 0x9a968e, { x, y: 2.25, z: -2, parent: site }));
+		// Shattered glass on the floor.
+		const gr = rng(87);
+		for (let i = 0; i < 60; i++) k.ico(0.03 + gr() * 0.06, 0x9ab8d0, { x: (gr() - 0.5) * 6, y: 0.02, z: -1 + gr() * 3, s: [1, 0.15, 1.6], ry: gr() * 6, parent: site, opacity: 0.7, rough: 0.05, metal: 0.3, emissive: 0x1a2a3a });
+		const hero6 = k.person({ x: 0, y: 0, z: 0.3, ry: 0.35, colors: { shirt: 0xe8e0c8, legs: 0x2a2a2e, skin: 0xd8a888, hair: 0x3a2818, shoes: 0xd8a888 }, sleeves: 0xd8a888, parent: site });
+		k.box(0.36, 0.4, 0.29, 0xd8a888, { y: 1.38, parent: hero6 });
+		k.box(0.52, 0.16, 0.3, 0xd8a888, { y: 1.5, parent: hero6 });
+		[[-0.12, 1.1, 0x5a4a3a], [0.15, 1.3, 0x6a5a40], [0.05, 0.95, 0x7a1a14], [-0.17, 1.25, 0x4a4030]].forEach(([x, y, c]) => k.box(0.1, 0.08, 0.02, c, { x, y, z: 0.145, parent: hero6 }));
+		k.box(0.2, 0.05, 0.04, 0xa88068, { y: -0.15, z: 0.17, parent: hero6.userData.limbs.head });
+		const h6 = hero6.userData.limbs.head;
+		k.box(0.03, 0.07, 0.02, 0x7a1a14, { x: 0.1, y: -0.07, z: 0.18, parent: h6 });
+		[-1, 1].forEach((sx) => {
+			k.box(0.05, 0.03, 0.02, 0x1a1210, { x: sx * 0.075, y: -0.01, z: 0.19, parent: h6 });
+			k.box(0.08, 0.025, 0.02, 0x3a2818, { x: sx * 0.075, y: 0.04, z: 0.19, rz: sx * -0.15, parent: h6 });
+		});
+		const { armL: aL, armR: aR, legL: lL, legR: lR } = hero6.userData.limbs;
+		lL.rotation.set(0, 0, -0.12);
+		lR.rotation.set(0, 0, 0.12);
+		// Pistol held up beside his head, radio out in front of his chest.
+		aL.rotation.set(-2.1, 0, -0.55);
+		k.box(0.07, 0.26, 0.11, 0x111114, { y: -0.9, z: 0.02, parent: aL, metal: 0.6, rough: 0.3 });
+		k.box(0.06, 0.16, 0.09, 0x111114, { y: -0.72, z: 0.1, rx: 0.3, parent: aL, metal: 0.6 });
+		aR.rotation.set(-0.95, 0, -0.5);
+		const radio = k.group({ y: -0.78, parent: aR });
+		k.box(0.13, 0.3, 0.09, 0x1a1a1a, { rx: 1.2, parent: radio });
+		k.cyl(0.015, 0.015, 0.3, 0x111111, { x: 0.04, y: 0.1, z: 0.25, rx: 1.2, parent: radio });
+		k.glow(0xff3020, 0.06, { y: 0.1, z: 0.04, parent: radio });
+		k.spot(0xfff0e0, 32, { x: 3, y: 4.3, z: 304, target: [0, 1.2, 300.3], angle: 0.45, distance: 20, from: 5 });
+		k.point(0xffd8b0, 10, 14, { x: -2, y: 3.5, z: 303, from: 5 });
+		k.point(0x8090ff, 6, 10, { x: 0, y: 3, z: 296, from: 5 });
 		return {
 			shots: [
 				{ pos: [-400, 3, 18], look: [-400, 5, 0], fov: 50, fog: [0x2a2018, 10, 60], hide: ["sky", "stars"] },
@@ -1384,7 +1421,7 @@ export const REELS = {
 				{ pos: [1, 94.5, -33.6], look: [1, 89.6, -37.6], fov: 50 },
 				{ pos: [10, H + 3.2, -41], look: [6, H + 6.5, -51], fov: 55 },
 				{ pos: [300.6, 0.8, 1.5], look: [300, 0.15, 0], fov: 45, hide: ["sky", "stars"], fog: [0x0e1018, 2, 20] },
-				{ pos: [44, 6, 50], look: [0, 72, -60], fov: 55 },
+				{ pos: [0.55, 1.1, 303.2], look: [0.2, 1.08, 300.2], fov: 52, hide: ["sky", "stars"], fog: [0x1a1c2a, 10, 40], exposure: 1.0 },
 			],
 		};
 	},

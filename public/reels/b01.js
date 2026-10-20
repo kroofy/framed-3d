@@ -1005,7 +1005,7 @@ export const REELS = {
 		};
 
 		// ---- The future: skulls, treads, lasers.
-		const war = k.group({ from: 4, until: 4 });
+		const war = k.group({ from: 3, until: 3 });
 		k.ground(400, 0x3a3a44, { bump: 0.4, seg: 40, parent: war });
 		const sr = rng(20);
 		for (let i = 0; i < 90; i++) {
@@ -1057,7 +1057,7 @@ export const REELS = {
 		k.point(0xb0c8ff, 14, 16, { x: 1, y: 5, z: 1, parent: war });
 
 		// ---- The storm drain chase, in the LA sun.
-		const drain = k.group({ x: 400, from: 3, until: 3 });
+		const drain = k.group({ x: 400, from: 1, until: 1 });
 		k.sky(0x4a8ad8, 0xe8e0d0, { r: 300, tag: "lasky", parent: drain });
 		k.box(16, 0.4, 300, 0xa8a49a, { y: -0.2, parent: drain });
 		k.box(1.2, 0.3, 300, 0x7a8a8a, { y: 0.02, parent: drain, opacity: 0.6, rough: 0.1 });
@@ -1105,7 +1105,7 @@ export const REELS = {
 		k.person({ x: 0.8, y: 2.1, z: 2.6, s: 0.95, colors: { shirt: 0x2a3a6a, legs: 0x2a3a6a, hair: 0x2a1a10 }, parent: truck });
 
 		// ---- The liquid-metal man, rising from the checkered floor.
-		const ward = k.group({ x: -400, from: 1, until: 1 });
+		const ward = k.group({ x: -400, from: 4, until: 4 });
 		const checks = k.canvas(256, 256, (g) => {
 			for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
 				g.fillStyle = (x + y) % 2 ? "#141414" : "#e8e8e4";
@@ -1280,10 +1280,10 @@ export const REELS = {
 		return {
 			shots: [
 				{ pos: [395, 2.2, 413], look: [398.5, 1.6, 398], fov: 50, fog: [0x141a2a, 20, 90], exposure: 1.2 },
-				{ pos: [-398.6, 0.9, 0.4], look: [-400, 1.3, -2], fov: 50, fog: [0xc8d0c8, 10, 40], exposure: 1.1 },
-				{ pos: [-2, 1.7, 412], look: [8, 14, 340], fov: 55, fog: [0xf0d8b8, 60, 500], hide: ["sky"] },
 				{ pos: [404, 2.4, 15], look: [400, 1.9, 2], fov: 50, fog: [0xd8d4c8, 60, 300], hide: ["sky"], exposure: 1.15 },
+				{ pos: [-2, 1.7, 412], look: [8, 14, 340], fov: 55, fog: [0xf0d8b8, 60, 500], hide: ["sky"] },
 				{ pos: [5.6, 2.0, 6.2], look: [2.2, 1.8, 0.5], fov: 50 },
+				{ pos: [-398.6, 0.9, 0.4], look: [-400, 1.3, -2], fov: 50, fog: [0xc8d0c8, 10, 40], exposure: 1.1 },
 				{ pos: [1.5, 1.2, -396.6], look: [0, 1.3, -400], fov: 50, fog: [0x2a1408, 8, 50], exposure: 1.2 },
 
 			],
