@@ -1005,7 +1005,7 @@ export const REELS = {
 		};
 
 		// ---- The future: skulls, treads, lasers.
-		const war = k.group({ from: 3, until: 3 });
+		const war = k.group({ from: 2, until: 2 });
 		k.ground(400, 0x3a3a44, { bump: 0.4, seg: 40, parent: war });
 		const sr = rng(20);
 		for (let i = 0; i < 90; i++) {
@@ -1056,55 +1056,98 @@ export const REELS = {
 		k.point(0xa0c0ff, 10, 20, { x: 6, y: 4, z: 8, parent: war });
 		k.point(0xb0c8ff, 14, 16, { x: 1, y: 5, z: 1, parent: war });
 
-		// ---- The storm drain chase, in the LA sun.
-		const drain = k.group({ x: 400, from: 1, until: 1 });
-		k.sky(0x4a8ad8, 0xe8e0d0, { r: 300, tag: "lasky", parent: drain });
-		k.box(16, 0.4, 300, 0xa8a49a, { y: -0.2, parent: drain });
-		k.box(1.2, 0.3, 300, 0x7a8a8a, { y: 0.02, parent: drain, opacity: 0.6, rough: 0.1 });
-		[-1, 1].forEach((s) => {
-			k.box(12, 0.5, 300, 0x9a968c, { x: s * 12.6, y: 3.6, rz: s * 0.62, parent: drain });
-			k.box(60, 1, 300, 0x8a8058, { x: s * 47, y: 7.2, parent: drain });
-			for (let i = 0; i < 12; i++) {
-				const z = -140 + i * 24;
-				k.cyl(0.25, 0.35, 12, 0x6a5a40, { x: s * (22 + (i % 3) * 6), y: 13.5, z, parent: drain });
-				for (let f = 0; f < 6; f++) k.box(3.4, 0.08, 0.6, 0x3a6a2a, { x: s * (22 + (i % 3) * 6) + Math.cos(f) * 1.6, y: 19.3, z: z + Math.sin(f) * 1.6, ry: -f, rz: 0.4, parent: drain });
+		// ---- A mall arcade corner: a missile-defence cabinet left glowing, its stool pushed back.
+		const arcade = k.group({ x: 400, from: 1, until: 1 });
+		const carpet = k.canvas(256, 256, (g) => {
+			g.fillStyle = "#14102a";
+			g.fillRect(0, 0, 256, 256);
+			const r = rng(31);
+			const cols = ["#e83a8a", "#3ac8e8", "#f2d040", "#7a4ae8"];
+			for (let i = 0; i < 70; i++) {
+				g.strokeStyle = cols[i % 4];
+				g.lineWidth = 3;
+				g.beginPath();
+				const x = r() * 256;
+				const y = r() * 256;
+				g.moveTo(x, y);
+				g.lineTo(x + (r() - 0.5) * 40, y + (r() - 0.5) * 40);
+				g.stroke();
 			}
 		});
-		for (let i = 0; i < 30; i++) k.box(0.3, 0.05, 2.4, 0x8a867c, { x: (i % 2 ? 1 : -1) * 4, y: 0.01, z: -140 + i * 10, parent: drain });
-		k.box(20, 2, 4, 0xb8b4aa, { y: 14, z: -60, parent: drain });
-		[-6, 6].forEach((x) => k.box(1.5, 13, 3, 0xa8a49a, { x, y: 6.5, z: -60, parent: drain }));
-		const bike = (o) => {
-			const g = k.group(o);
-			[-0.85, 0.85].forEach((z) => k.torus(0.34, 0.1, 0x1a1a1a, { z, y: 0.42, ry: PI / 2, parent: g, seg: 16 }));
-			k.box(0.3, 0.35, 1.3, 0x1a1a1e, { y: 0.7, parent: g, metal: 0.6, rough: 0.3 });
-			k.sphere(0.26, 0x111114, { y: 0.95, z: 0.25, s: [0.8, 0.6, 1.3], parent: g, metal: 0.6, rough: 0.2 });
-			k.cyl(0.04, 0.04, 0.9, 0xc8c8c8, { y: 1.15, z: 0.75, rz: PI / 2, parent: g, metal: 0.9, rough: 0.2 });
-			k.cyl(0.05, 0.05, 1.2, 0xc8c8c8, { x: 0.2, y: 0.4, z: -0.4, rx: PI / 2, parent: g, metal: 0.9, rough: 0.2 });
-			k.glow(0xfff0c0, 0.5, { y: 1.0, z: 1.0, parent: g });
+		carpet.wrapS = carpet.wrapT = k.THREE.RepeatWrapping;
+		carpet.repeat.set(4, 4);
+		k.plane(20, 20, k.mat(0xffffff, { map: carpet, rough: 0.95 }), { rx: -PI / 2, parent: arcade });
+		k.box(20, 5, 0.3, 0x1a1626, { y: 2.5, z: -4, parent: arcade });
+		k.box(0.3, 5, 20, 0x1e1a2c, { x: -4.5, y: 2.5, parent: arcade });
+		k.box(20, 0.2, 20, 0x100c18, { y: 5, parent: arcade });
+		k.box(16, 0.08, 0.08, 0xff3aa0, { x: 4, y: 3.8, z: -3.8, emissive: 0xff3aa0, glow: 2, parent: arcade });
+		k.box(0.08, 0.08, 16, 0x3ad8ff, { x: -4.3, y: 3.8, z: 4, emissive: 0x3ad8ff, glow: 2, parent: arcade });
+		const screenTex = (kind) =>
+			k.canvas(128, 112, (g, w, h) => {
+				g.fillStyle = "#04040c";
+				g.fillRect(0, 0, w, h);
+				if (kind === 0) {
+					// Incoming trails raining down on six little cities, and the round blooms that stop them.
+					g.lineWidth = 2;
+					[[10, 30], [40, 70], [70, 20], [100, 95], [120, 60]].forEach(([x0, x1], i) => {
+						g.strokeStyle = i % 2 ? "#ff4040" : "#ff8a40";
+						g.beginPath();
+						g.moveTo(x0, 0);
+						g.lineTo(x1, 50 + i * 8);
+						g.stroke();
+					});
+					[[38, 44, 12], [86, 36, 9], [64, 70, 7]].forEach(([x, y, r]) => {
+						g.fillStyle = "#f8f8ff";
+						g.beginPath();
+						g.arc(x, y, r, 0, PI * 2);
+						g.fill();
+					});
+					g.fillStyle = "#e8c030";
+					g.fillRect(0, 100, w, 12);
+					g.fillStyle = "#3a8aff";
+					[8, 26, 44, 76, 94, 112].forEach((x) => g.fillRect(x, 92, 10, 8));
+					g.fillStyle = "#e8c030";
+					[0, 58, 118].forEach((x) => g.fillRect(x, 88, 10, 12));
+				} else {
+					g.fillStyle = ["#3aff6a", "#ff3ad0", "#40a0ff"][kind % 3];
+					for (let i = 0; i < 9; i++) g.fillRect(14 + (i % 3) * 36, 18 + Math.floor(i / 3) * 26, 18, 10);
+				}
+			});
+		const cab = (x, z, ry, kind, body, marquee) => {
+			const g = k.group({ x, z, ry, parent: arcade });
+			k.box(0.9, 1.0, 0.8, body, { y: 0.5, parent: g });
+			k.box(0.9, 0.18, 0.55, body, { y: 1.08, z: 0.12, rx: 0.35, parent: g });
+			k.box(0.9, 0.8, 0.55, body, { y: 1.55, z: -0.05, parent: g });
+			k.box(0.9, 0.3, 0.6, 0x101010, { y: 2.05, z: -0.02, parent: g });
+			k.box(0.84, 0.24, 0.02, marquee, { y: 2.05, z: 0.29, emissive: marquee, glow: 1.2, parent: g });
+			k.plane(0.7, 0.62, flat(k, screenTex(kind)), { y: 1.55, z: 0.23, rx: -0.15, parent: g });
+			if (kind === 0) {
+				// A trackball and three fire buttons.
+				k.sphere(0.06, 0xd8d8d8, { y: 1.14, z: 0.22, parent: g, rough: 0.2 });
+				[-0.25, 0.22, 0.32].forEach((bx) => k.cyl(0.035, 0.035, 0.03, 0xff3a2a, { x: bx, y: 1.14, z: 0.16, rx: 0.35, emissive: 0x801010, parent: g }));
+			} else {
+				k.cyl(0.015, 0.015, 0.12, 0x101010, { x: -0.15, y: 1.18, z: 0.18, parent: g });
+				k.sphere(0.035, 0xe82a2a, { x: -0.15, y: 1.25, z: 0.18, parent: g });
+			}
 			return g;
 		};
-		const b1 = bike({ x: 1.5, y: 0, z: 8, parent: drain });
-		const arnie = k.person({ y: 0.05, z: -0.15, pose: "sit", shades: true, colors: { shirt: 0x141416, legs: 0x1a1a22, hair: 0x2a1a10, skin: 0xd8a888 }, sleeves: 0x141416, parent: b1 });
-		arnie.userData.limbs.armL.rotation.x = -1.1;
-		arnie.userData.limbs.armR.rotation.set(-0.3, 0, 1.4);
-		k.box(0.06, 0.08, 0.9, 0x2a2018, { x: 0.95, y: 1.45, z: 0.1, ry: 0.2, parent: b1 });
-		const john = k.person({ y: 0.05, z: -0.7, s: 0.8, pose: "sit", colors: { shirt: 0x6a2a2a, legs: 0x4a5a7a, hair: 0x4a3018 }, parent: b1 });
-		john.userData.limbs.armL.rotation.x = -1.3;
-		john.userData.limbs.armR.rotation.x = -1.3;
-		const truck = k.group({ x: -1.5, y: 0, z: -6, parent: drain });
-		[-1.6, 1.6].forEach((x) => [2.5, -1.5, -3.2].forEach((z) => k.cyl(0.75, 0.75, 0.6, 0x1a1a1a, { x, y: 0.75, z, rz: PI / 2, parent: truck })));
-		k.box(3.6, 2.6, 3, 0xe8e4dc, { y: 2.6, z: 2.4, parent: truck });
-		k.box(3.4, 1.2, 0.1, 0x2a3a4a, { y: 3.3, z: 3.92, rx: -0.1, parent: truck, rough: 0.1 });
-		k.box(3.8, 0.5, 0.4, 0xc8c8c8, { y: 1.1, z: 4.0, parent: truck, metal: 0.8, rough: 0.3 });
-		k.box(3.6, 1.2, 1.8, 0xe8e4dc, { y: 1.8, z: 4.7, parent: truck });
-		k.box(3.3, 0.9, 0.08, 0xb8b8b8, { y: 1.8, z: 5.62, parent: truck, metal: 0.8 });
-		k.box(3.8, 0.6, 7, 0x8a1a1a, { y: 1.4, z: -1.5, parent: truck });
-		k.box(0.4, 3, 0.4, 0x4a4a4a, { y: 3, z: -3, rx: 0.5, parent: truck });
-		[-1.2, 1.2].forEach((x) => k.cyl(0.12, 0.12, 2.6, 0xc8c8c8, { x, y: 4.6, z: 1, parent: truck, metal: 0.9 }));
-		k.box(4, 0.5, 0.6, 0x2a2a2a, { y: 4.1, z: 3.6, parent: truck });
-		k.person({ x: 0.8, y: 2.1, z: 2.6, s: 0.95, colors: { shirt: 0x2a3a6a, legs: 0x2a3a6a, hair: 0x2a1a10 }, parent: truck });
+		cab(-1.8, -3.3, 0, 2, 0x2a2a6a, 0xff4ac0);
+		cab(-0.6, -3.3, 0, 0, 0x6a1a1a, 0xffc040);
+		cab(0.6, -3.3, 0, 1, 0x1a4a2a, 0x40e0ff);
+		cab(-3.9, -1.6, PI / 2, 4, 0x3a2a1a, 0x70ff70);
+		cab(-3.9, -0.4, PI / 2, 5, 0x1a1a1a, 0xff6a40);
+		k.point(0xff6a40, 3, 4, { x: -0.6, y: 1.6, z: -2.4, parent: arcade });
+		k.point(0x6a8aff, 2, 5, { x: 0.6, y: 1.6, z: -2.4, parent: arcade });
+		const stool = k.group({ x: -0.35, z: -2.2, rz: 0, parent: arcade });
+		k.cyl(0.2, 0.2, 0.08, 0xc82a2a, { y: 0.62, parent: stool, rough: 0.4 });
+		k.cyl(0.03, 0.03, 0.6, 0xb0b0b0, { y: 0.3, parent: stool, metal: 0.8 });
+		k.cyl(0.18, 0.2, 0.04, 0xb0b0b0, { y: 0.02, parent: stool, metal: 0.8 });
+		// Quarters stacked on the bezel, and a dropped soda cup.
+		for (let i = 0; i < 4; i++) k.cyl(0.025, 0.025, 0.006, 0xd0d0d0, { x: 0.1, y: 1.115 + i * 0.007, z: -2.95, parent: arcade, metal: 0.9, rough: 0.3 });
+		k.cyl(0.05, 0.04, 0.16, 0xe8e8e0, { x: 0.3, y: 0.05, z: -1.9, rz: PI / 2, ry: 0.6, parent: arcade });
+		k.point(0xa080ff, 2, 14, { x: 1, y: 4, z: 1, parent: arcade });
 
-		// ---- The liquid-metal man, rising from the checkered floor.
+		// ---- The liquid-metal man, rising out of the checkered hospital floor.
 		const ward = k.group({ x: -400, from: 4, until: 4 });
 		const checks = k.canvas(256, 256, (g) => {
 			for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
@@ -1114,25 +1157,96 @@ export const REELS = {
 		});
 		checks.wrapS = checks.wrapT = k.THREE.RepeatWrapping;
 		checks.repeat.set(5, 10);
-		k.plane(10, 20, k.mat(0xffffff, { map: checks, rough: 0.15, metal: 0.1 }), { rx: -PI / 2, parent: ward });
-		[-1, 1].forEach((s) => k.box(0.2, 4, 20, 0xc8d0c4, { x: s * 5, y: 2, parent: ward }));
+		k.plane(10, 20, k.mat(0xffffff, { map: checks, rough: 0.12, metal: 0.15, flat: false }), { rx: -PI / 2, parent: ward });
+		[-1, 1].forEach((s) => k.box(0.2, 4, 20, 0x9ab0a0, { x: s * 5, y: 2, parent: ward }));
 		k.box(10, 0.2, 20, 0xd8dcd4, { y: 4, parent: ward });
 		for (let i = 0; i < 4; i++) {
-			k.box(0.4, 0.06, 2, 0xffffff, { y: 3.88, z: -8 + i * 5, emissive: 0xffffff, glow: 1, parent: ward });
+			k.box(0.5, 0.06, 2, 0xffffff, { y: 3.88, z: -8 + i * 5, emissive: 0xffffff, glow: 1, parent: ward });
 			k.point(0xe8fff0, 6, 10, { y: 3.4, z: -8 + i * 5, parent: ward });
 		}
-		const lm = chrome(k, 0xe0e6ee, { top: "#26303e", horizon: "#ffffff", ground: "#4a4a4a", rough: 0.15 });
-		const t1000 = k.person({ x: 0, y: -0.45, z: -2, ry: 0.2, colors: {}, parent: ward });
-		t1000.traverse((o) => o.isMesh && (o.material = lm));
-		t1000.userData.limbs.armR.rotation.set(-1.1, 0, 0.35);
-		k.box(0.05, 1.1, 0.2, lm, { y: -1.1, parent: t1000.userData.limbs.armR });
-		k.cone(0.1, 0.35, lm, { y: -1.82, rx: PI, s: [0.5, 1, 1], parent: t1000.userData.limbs.armR });
-		k.cyl(0.9, 1.1, 0.06, lm, { x: 0, y: 0.02, z: -2, s: [1, 1, 0.8], parent: ward });
-		for (let i = 0; i < 6; i++) k.sphere(0.06 + (i % 3) * 0.03, lm, { x: Math.cos(i) * 1.1, y: 0.05, z: -2 + Math.sin(i) * 0.9, parent: ward });
-		k.cyl(0.35, 0.6, 0.3, lm, { y: 0.0, z: -2, parent: ward });
+		// A liquid-metal look: a sharp mirror of fluorescent strips over a checkered floor.
+		const mirror = k.canvas(1024, 512, (g, w, h) => {
+			const gr = g.createLinearGradient(0, 0, 0, h);
+			gr.addColorStop(0, "#3a4450");
+			gr.addColorStop(0.3, "#a8b4c0");
+			gr.addColorStop(0.48, "#ffffff");
+			gr.addColorStop(0.56, "#6a7078");
+			gr.addColorStop(0.8, "#2a2c30");
+			gr.addColorStop(1, "#4a4c50");
+			g.fillStyle = gr;
+			g.fillRect(0, 0, w, h);
+			g.filter = "blur(18px)";
+			[[150, 120, 90], [520, 90, 70], [820, 150, 80]].forEach(([x, y, r]) => {
+				g.fillStyle = "rgba(255,255,255,0.9)";
+				g.beginPath();
+				g.ellipse(x, y, r, r * 0.6, 0, 0, PI * 2);
+				g.fill();
+			});
+			g.fillStyle = "rgba(20,24,30,0.8)";
+			[[330, 200, 60], [700, 230, 50]].forEach(([x, y, r]) => {
+				g.beginPath();
+				g.ellipse(x, y, r, r * 1.6, 0, 0, PI * 2);
+				g.fill();
+			});
+		});
+		mirror.mapping = k.THREE.EquirectangularReflectionMapping;
+		const lm = new k.THREE.MeshStandardMaterial({ color: 0xeef2f8, metalness: 1, roughness: 0.06, envMap: mirror, envMapIntensity: 1.6, flatShading: false });
+		const T = k.group({ x: 0, y: 0, z: -2, ry: 0.2, parent: ward });
+		const P = k.THREE.Vector2;
+		// One unbroken surface: the puddle swells into hips, chest and neck — the man is still pouring up out of the tiles.
+		const body = [[1.5, 0], [1.1, 0.025], [0.8, 0.07], [0.62, 0.16], [0.45, 0.3], [0.4, 0.48], [0.37, 0.66], [0.36, 0.82], [0.38, 0.98], [0.42, 1.14], [0.46, 1.26], [0.42, 1.36], [0.24, 1.45], [0.1, 1.5], [0.085, 1.6], [0, 1.62]];
+		k.mesh(new k.THREE.LatheGeometry(body.map(([r, y]) => new P(r, y)), 48), lm, { parent: T, s: [1.2, 1, 0.72] });
+		// Lobes of the pool spilling over the tiles.
+		[[1.3, 0.5, 0.7], [-1.2, 0.7, 0.6], [0.3, 1.3, 0.5], [-0.8, -1.1, 0.7], [1.0, -1.0, 0.5]].forEach(([x, z, r]) => k.sphere(r, lm, { x, y: 0, z, s: [1.4, 0.035, 1], ry: x * z, parent: T, seg: 32, rings: 12 }));
+		// Stray beads of chrome sliding back to join it.
+		const dr = rng(44);
+		for (let i = 0; i < 16; i++) {
+			const a = dr() * PI * 2;
+			const d = 2.3 + dr() * 1.6;
+			const r = 0.06 + dr() * 0.12;
+			k.sphere(r, lm, { x: Math.cos(a) * d, y: r * 0.2, z: Math.sin(a) * d * 0.8, s: [1.8, 0.4, 1], ry: -a, parent: T, seg: 20 });
+		}
+		// Head: brow, nose, jaw, slicked hair line — all one chrome cast.
+		const head = k.group({ y: 1.8, rx: -0.05, ry: -0.2, parent: T });
+		k.sphere(0.22, lm, { s: [0.84, 1.08, 0.96], parent: head, seg: 32, rings: 24 });
+		k.sphere(0.14, lm, { y: -0.1, z: 0.05, s: [1.0, 0.85, 1.0], parent: head, seg: 24 });
+		k.sphere(0.035, lm, { y: -0.02, z: 0.19, s: [0.8, 1.4, 1], parent: head, seg: 12 });
+		[-1, 1].forEach((s) => k.sphere(0.04, lm, { x: s * 0.17, y: -0.01, s: [0.5, 1, 0.8], parent: head, seg: 12 }));
+		const shoulder = (s) => {
+			k.sphere(0.16, lm, { x: s * 0.5, y: 1.3, s: [1, 0.85, 0.9], parent: T, seg: 24 });
+			return k.group({ x: s * 0.55, y: 1.32, parent: T });
+		};
+		// Left arm: whole, reaching forward to haul the rest of him up.
+		const shL = shoulder(-1);
+		shL.rotation.set(-0.5, 0, -0.45);
+		k.capsule(0.11, 0.34, lm, { y: -0.22, parent: shL, seg: 18 });
+		const elL = k.group({ y: -0.46, rx: -0.5, parent: shL });
+		k.capsule(0.09, 0.32, lm, { y: -0.2, parent: elL, seg: 18 });
+		k.sphere(0.085, lm, { y: -0.48, s: [1.1, 1.3, 0.55], parent: elL, seg: 18 });
+		// Right arm: still forming — a long shining blade where the hand should be.
+		const shR = shoulder(1);
+		shR.rotation.set(-0.9, 0, 0.5);
+		k.capsule(0.11, 0.34, lm, { y: -0.22, parent: shR, seg: 18 });
+		const blade = k.group({ y: -0.46, rx: -0.6, rz: 0.15, parent: shR });
+		k.capsule(0.09, 0.24, lm, { y: -0.16, parent: blade, seg: 18 });
+		const knife = new k.THREE.Shape();
+		knife.moveTo(-0.07, 0);
+		knife.lineTo(0.07, 0);
+		knife.lineTo(0.012, -0.78);
+		knife.lineTo(0, -0.88);
+		knife.lineTo(-0.02, -0.74);
+		knife.closePath();
+		k.mesh(new k.THREE.ExtrudeGeometry(knife, { depth: 0.015, bevelEnabled: true, bevelSize: 0.012, bevelThickness: 0.012, bevelSegments: 3 }), lm, { y: -0.32, x: -0.01, ry: PI / 2, parent: blade });
+		// Drips still running off the forming arm.
+		[[-0.05, 0.12], [0.1, 0.08]].forEach(([y, l]) => k.capsule(0.025, l, lm, { x: 0.06, y: y - 0.05, z: 0.04, rz: -0.9, parent: blade, seg: 12 }));
+		// The ward's far end: a steel door.
+		k.box(10, 4, 0.2, 0x9ab0a0, { y: 2, z: -10, parent: ward });
+		k.box(1.4, 2.6, 0.1, 0x8a9098, { y: 1.3, z: -9.86, parent: ward, metal: 0.6, rough: 0.4 });
+		k.spot(0xffffff, 30, { x: -401.5, y: 3.6, z: 1.5, target: [-400, 1.2, -2], angle: 0.5, distance: 12 });
+		k.point(0xd8f0ff, 8, 6, { x: 1.4, y: 2.2, z: 0, parent: ward });
 
 		// ---- The playground dream.
-		const play = k.group({ z: 400, from: 2, until: 2 });
+		const play = k.group({ z: 400, from: 3, until: 3 });
 		k.sky(0x6a9ad0, 0xf8e8c8, { r: 400, tag: "lasky", parent: play });
 		k.ground(600, 0x8aa858, { bump: 0.3, parent: play });
 		k.cyl(14, 14, 0.06, 0xd8c08a, { y: 0.02, z: -4, parent: play, seg: 24 });
@@ -1186,52 +1300,74 @@ export const REELS = {
 		k.glow(0xffd0a0, 140, { y: 80, parent: blast, opacity: 0.45 });
 		k.point(0xffc080, 40, 600, { y: 80, z: 50, parent: blast, decay: 0.5 });
 
-		// ---- A roadside bar at night: pickups and motorcycles out front.
-		const bar = k.group({ x: 400, z: 400, from: 0, until: 0 });
-		k.ground(120, 0x5a5048, { bump: 0.15, parent: bar });
-		k.box(16, 4.4, 8, 0x6a5038, { y: 2.2, z: -6, parent: bar });
-		for (let i = 0; i < 14; i++) k.box(0.08, 4.4, 0.1, 0x4a3828, { x: -7.5 + i * 1.15, y: 2.2, z: -1.96, parent: bar });
-		k.box(17, 0.3, 9, 0x3a2c22, { y: 4.5, z: -6, parent: bar });
-		k.box(16, 0.2, 3, 0x4a3a2a, { y: 3.2, z: -0.6, rx: -0.12, parent: bar });
-		[-7.6, -2, 2, 7.6].forEach((x) => k.cyl(0.1, 0.1, 3.2, 0x3a2a1c, { x, y: 1.6, z: 0.8, parent: bar }));
-		k.box(1.4, 2.4, 0.1, 0x2a1a10, { x: -1, y: 1.2, z: -1.9, parent: bar });
-		[2.5, 5.2].forEach((x) => {
-			k.box(1.6, 1.0, 0.1, 0xffc070, { x, y: 1.8, z: -1.92, parent: bar, emissive: 0xffa040, glow: 0.7 });
-			k.point(0xffa040, 4, 6, { x, y: 1.8, z: -1.2, parent: bar });
-		});
-		const beer = k.canvas(256, 96, (g, w, h) => {
-			g.fillStyle = "#0a0606";
-			g.fillRect(0, 0, w, h);
-			g.font = "bold 64px sans-serif";
-			g.textAlign = "center";
-			g.textBaseline = "middle";
-			g.shadowColor = "#ff3a3a";
-			g.shadowBlur = 16;
-			g.fillStyle = "#ff8a7a";
-			g.fillText("BEER", w / 2, h / 2);
-		});
-		k.plane(2.4, 0.9, flat(k, beer), { x: 3.9, y: 2.75, z: -1.9, parent: bar });
-		k.point(0xff4a4a, 6, 8, { x: 3.9, y: 2.7, z: -0.8, parent: bar });
-		const moto = (x, ry) => {
-			const g = k.group({ x, z: 2.2, ry, parent: bar });
-			[-0.8, 0.8].forEach((z) => k.torus(0.34, 0.09, 0x141414, { z, y: 0.42, ry: PI / 2, parent: g, seg: 16 }));
-			k.box(0.26, 0.3, 1.2, 0x1a1a1e, { y: 0.7, parent: g, metal: 0.6, rough: 0.3 });
-			k.sphere(0.24, [0x1a1a1e, 0x6a1a1a, 0x1a2a4a][Math.abs(Math.round(x)) % 3], { y: 0.95, z: 0.2, s: [0.8, 0.6, 1.3], parent: g, metal: 0.6, rough: 0.2 });
-			k.cyl(0.03, 0.03, 0.8, 0xd0d0d0, { y: 1.15, z: 0.7, rz: PI / 2, parent: g, metal: 0.9, rough: 0.2 });
-			k.cyl(0.04, 0.04, 1.1, 0xd0d0d0, { x: 0.18, y: 0.4, z: -0.4, rx: PI / 2, parent: g, metal: 0.9, rough: 0.2 });
-			k.box(0.3, 0.1, 0.5, 0x2a1a10, { y: 0.92, z: -0.35, parent: g });
-		};
-		[-6, -4.6, -3.2, -1.8, 0.8, 2.2].forEach((x, i) => moto(x, PI + 0.5 + (i % 2) * 0.08));
-		const pick = k.group({ x: 7.5, z: 4, ry: 0.3, parent: bar });
-		k.box(2.0, 0.8, 5, 0x6a7a8a, { y: 0.9, parent: pick, metal: 0.4, rough: 0.5 });
-		k.box(1.9, 0.8, 1.8, 0x6a7a8a, { y: 1.7, z: 0.6, parent: pick, metal: 0.4, rough: 0.5 });
-		k.box(1.8, 0.6, 1.82, 0x2a3a4a, { y: 1.75, z: 0.6, parent: pick, rough: 0.1 });
-		[-0.9, 0.9].forEach((x) => [-1.6, 1.6].forEach((z) => k.cyl(0.4, 0.4, 0.3, 0x141414, { x, y: 0.4, z, rz: PI / 2, parent: pick })));
-		k.box(0.12, 6, 0.12, 0x4a4a4a, { x: -10, y: 3, z: 3, parent: bar });
-		k.sphere(0.3, 0xfff0c0, { x: -10, y: 6, z: 3.3, parent: bar, emissive: 0xffd080, glow: 1 });
-		k.spot(0xffd8a0, 40, { x: 390, y: 6, z: 403.3, target: [395, 0, 402], angle: 0.8, distance: 30 });
-		k.point(0x8aa0d0, 6, 30, { x: 6, y: 8, z: 12, parent: bar });
-		k.disc(0xe8e8f0, 8, { x: -40, y: 50, z: -150, parent: bar });
+		// ---- A desert compound at dusk: something long under a tarp beside a parked station wagon.
+		const camp = k.group({ x: 400, z: 400, from: 0, until: 0 });
+		k.sky(0x4a6aa8, 0xf0b070, { r: 300, tag: "lasky", parent: camp });
+		k.ground(300, 0xc8a070, { bump: 0.6, seg: 50, parent: camp });
+		const cr = rng(77);
+		for (let i = 0; i < 14; i++) {
+			const x = (cr() - 0.5) * 160;
+			const z = -40 - cr() * 120;
+			const h = 6 + cr() * 18;
+			const r = 14 + cr() * 20;
+			k.cyl(r * 0.6, r, h, 0xa87a5a, { x, y: h / 2 - 1, z, seg: 7, ry: cr(), parent: camp });
+		}
+		for (let i = 0; i < 26; i++) {
+			const x = (cr() - 0.5) * 50;
+			const z = (cr() - 0.5) * 40 - 6;
+			if (Math.abs(x) < 6 && z > -6 && z < 6) continue;
+			k.ico(0.3 + cr() * 0.4, 0x6a7a40, { x, y: 0.15, z, s: [1, 0.6, 1], parent: camp });
+		}
+		// A dented trailer behind, a gas drum, a chair.
+		k.box(7, 2.4, 2.4, 0xd8ccb0, { x: -6, y: 1.65, z: -6, parent: camp, rough: 0.7 });
+		k.box(7.1, 0.25, 2.5, 0x8a5a3a, { x: -6, y: 1.2, z: -6, parent: camp });
+		k.box(7.2, 0.15, 2.6, 0x9a9488, { x: -6, y: 2.9, z: -6, parent: camp, metal: 0.4 });
+		[-8.5, -3.5].forEach((x) => k.box(0.4, 0.45, 0.4, 0x6a6a6a, { x, y: 0.22, z: -5.2, parent: camp }));
+		k.cyl(0.4, 0.4, 0.25, 0x141414, { x: -6, y: 0.4, z: -4.95, rx: PI / 2, parent: camp });
+		k.box(0.8, 1.7, 0.05, 0x6a5a4a, { x: -7.4, y: 1.55, z: -4.78, parent: camp });
+		k.box(1.0, 0.6, 0.05, 0xffd890, { x: -4.6, y: 1.9, z: -4.78, emissive: 0xffa040, glow: 0.8, parent: camp });
+		k.box(1.6, 0.06, 1.2, 0x8a6a4a, { x: -7.4, y: 0.35, z: -4.1, parent: camp });
+		k.cyl(0.35, 0.35, 0.9, 0x8a2a1a, { x: 3.4, y: 0.45, z: -3, parent: camp, metal: 0.3 });
+		// The station wagon.
+		const wag = k.group({ x: 3, z: 0.2, ry: 0.9, parent: camp });
+		k.box(2.0, 0.7, 5.0, 0xb09a70, { y: 0.75, parent: wag, metal: 0.3, rough: 0.6 });
+		k.box(1.9, 0.6, 3.2, 0xb09a70, { y: 1.4, z: -0.6, parent: wag, metal: 0.3, rough: 0.6 });
+		k.box(1.92, 0.42, 3.0, 0x2a2e34, { y: 1.42, z: -0.6, parent: wag, rough: 0.15 });
+		k.box(1.6, 0.4, 0.04, 0x2a2e34, { y: 1.4, z: 1.02, rx: -0.4, parent: wag, rough: 0.15 });
+		k.box(1.4, 0.2, 0.06, 0xb8b8b8, { y: 0.6, z: 2.52, parent: wag, metal: 0.8 });
+		[-0.95, 0.95].forEach((x) => [-1.6, 1.6].forEach((z) => k.cyl(0.38, 0.38, 0.25, 0x141414, { x, y: 0.38, z, rz: PI / 2, parent: wag })));
+		k.box(1.8, 0.08, 2.6, 0x3a3a3a, { y: 1.74, z: -0.6, parent: wag, metal: 0.5 });
+		// The tarp: a lumpy canvas sheet pegged over long crates, one corner thrown back.
+		const tarp = k.group({ x: -1.6, z: 1.5, ry: 0.15, parent: camp });
+		for (let i = 0; i < 3; i++) k.box(2.4, 0.45, 0.6, 0x5a5a32, { y: 0.23, z: -0.7 + i * 0.7, parent: tarp });
+		k.box(2.2, 0.4, 0.55, 0x5a5a32, { y: 0.68, z: -0.35, parent: tarp });
+		const canvasMat = k.mat(0x6a6a48, { rough: 0.9, side: k.THREE.DoubleSide });
+		const tg = new k.THREE.PlaneGeometry(3.4, 2.8, 12, 10);
+		const tp = tg.attributes.position;
+		for (let i = 0; i < tp.count; i++) {
+			const x = tp.getX(i);
+			const y = tp.getY(i);
+			const inside = Math.abs(x) < 1.25 && y > -1.0 && y < 1.1;
+			const h = inside ? (y > -0.1 && y < 0.6 ? 1.0 : 0.58) : 0.04;
+			tp.setZ(i, h + Math.sin(x * 3 + y * 2) * 0.04);
+		}
+		tg.computeVertexNormals();
+		k.mesh(tg, canvasMat, { rx: -PI / 2, x: -0.4, parent: tarp });
+		// The thrown-back corner shows what's beneath: barrels in the straw.
+		k.box(1.2, 0.05, 1.8, 0x6a6a48, { x: 2.0, y: 0.12, z: 0.2, rz: -0.18, parent: tarp });
+		// Under the thrown-back corner: rifles laid out on an open crate.
+		k.box(0.9, 0.5, 1.6, 0x7a6a40, { x: 1.2, y: 0.25, z: -0.1, parent: tarp });
+		for (let i = 0; i < 4; i++) {
+			const gun = k.group({ x: 1.2, y: 0.53, z: -0.6 + i * 0.32, ry: PI / 2 + (i % 2) * 0.08, parent: tarp });
+			k.box(0.05, 0.06, 0.55, 0x1a1a1a, { z: 0.15, parent: gun, metal: 0.6, rough: 0.4 });
+			k.cyl(0.015, 0.015, 0.4, 0x1a1a1a, { z: 0.6, rx: PI / 2, parent: gun, metal: 0.6 });
+			k.box(0.05, 0.1, 0.3, 0x4a2e1a, { y: -0.01, z: -0.25, parent: gun });
+			k.box(0.04, 0.14, 0.05, 0x1a1a1a, { y: -0.08, z: 0.1, parent: gun });
+		}
+		k.box(0.4, 0.3, 0.3, 0x3a4a2a, { x: 1.9, y: 0.15, z: -1.1, parent: tarp });
+		k.point(0xffb070, 4, 10, { x: -4.6, y: 2, z: -3.5, parent: camp });
+		k.point(0xffc890, 12, 30, { x: 6, y: 6, z: 8, parent: camp });
+		k.disc(0xffc070, 14, { x: 60, y: 6, z: -140, parent: camp });
 
 		// ---- The steel mill: goodbye.
 		const mill = k.group({ z: -400, from: 5, until: 5 });
@@ -1279,13 +1415,12 @@ export const REELS = {
 		k.particles(400, 0xffb040, { z: -400, box: [16, 12, 16], speed: 1.5, drift: 1, size: 0.08, opacity: 0.8, from: 5, until: 5 });
 		return {
 			shots: [
-				{ pos: [395, 2.2, 413], look: [398.5, 1.6, 398], fov: 50, fog: [0x141a2a, 20, 90], exposure: 1.2 },
-				{ pos: [404, 2.4, 15], look: [400, 1.9, 2], fov: 50, fog: [0xd8d4c8, 60, 300], hide: ["sky"], exposure: 1.15 },
-				{ pos: [-2, 1.7, 412], look: [8, 14, 340], fov: 55, fog: [0xf0d8b8, 60, 500], hide: ["sky"] },
+				{ pos: [397.5, 1.8, 407.5], look: [399.6, 0.7, 400.8], fov: 50, fog: [0xd8a880, 40, 200], hide: ["sky"], exposure: 1.1 },
+				{ pos: [401.4, 1.55, 0.2], look: [399.6, 1.3, -3.2], fov: 50, fog: [0x100c18, 10, 30], exposure: 1.2 },
 				{ pos: [5.6, 2.0, 6.2], look: [2.2, 1.8, 0.5], fov: 50 },
-				{ pos: [-398.6, 0.9, 0.4], look: [-400, 1.3, -2], fov: 50, fog: [0xc8d0c8, 10, 40], exposure: 1.1 },
+				{ pos: [-2, 1.7, 412], look: [8, 14, 340], fov: 55, fog: [0xf0d8b8, 60, 500], hide: ["sky"] },
+				{ pos: [-398.9, 1.35, 0.9], look: [-400.0, 1.12, -2], fov: 46, fog: [0xc8d0c8, 10, 40], exposure: 1.1 },
 				{ pos: [1.5, 1.2, -396.6], look: [0, 1.3, -400], fov: 50, fog: [0x2a1408, 8, 50], exposure: 1.2 },
-
 			],
 		};
 	},
