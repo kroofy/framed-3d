@@ -394,6 +394,13 @@ export const REELS = {
 			gun(p);
 		});
 		k.point(0xfff4e0, 10, 14, { x: A, y: 4, z: 2 });
+		// Divine intervention: the shots that missed, in the plaster by the bathroom door.
+		k.box(1.1, 2.3, 0.08, 0x8a6a4a, { x: -4.88, y: 1.15, z: -2.6, ry: PI / 2, parent: flat });
+		[[1.55, -0.6], [1.8, -0.35], [1.35, -0.2], [1.95, -0.85], [1.62, 0.05], [1.25, -0.55]].forEach(([y, z]) => {
+			k.cyl(0.035, 0.035, 0.02, 0x1a1410, { x: A - 4.89, y, z, rz: PI / 2 });
+			k.cyl(0.07, 0.07, 0.01, 0xb8ae98, { x: A - 4.895, y, z, rz: PI / 2 });
+		});
+		k.spot(0xfff0d8, 6, { x: A - 2.5, y: 3, z: 0.5, target: [A - 4.9, 1.5, -0.4], angle: 0.5, distance: 8 });
 		// Breakfast on the coffee table: a burger, a fast-food cup and a bag.
 		const brk = k.group({ x: A - 2.2, z: 1.6, ry: 0.3 });
 		k.box(1.6, 0.06, 0.9, 0x5a3a24, { y: 0.45, parent: brk });
@@ -417,9 +424,9 @@ export const REELS = {
 		k.point(0xfff0d8, 4, 5, { x: A - 1.8, y: 1.8, z: 2.6 });
 		return {
 			shots: [
-				{ pos: [A - 2.65, 1.05, 2.45], look: [A - 2.2, 0.55, 1.6], fov: 42, fog: [0x2a2420, 3, 20] },
-				{ pos: [-8.6, 2.0, -8.0], look: [-9.0, 1.6, -9.1], fov: 40 },
+				{ pos: [A - 3.2, 1.6, -0.3], look: [A - 4.9, 1.55, -0.45], fov: 40, fog: [0x2a2420, 3, 20] },
 				{ pos: [7, 3.2, 9], look: [-2, 1.2, -8], fov: 55, exposure: 1.2 },
+				{ pos: [A - 2.65, 1.05, 2.45], look: [A - 2.2, 0.55, 1.6], fov: 42, fog: [0x2a2420, 3, 20] },
 				{ pos: [A + 0.1, 1.25, 1.2], look: [A, 1.5, -2.2], fov: 55, fog: [0xd8d0b8, 8, 40] },
 				{ pos: [0.6, 1.7, 5.5], look: [0, 1.3, 0], fov: 50, exposure: 1.2 },
 				{ pos: [B + 1.9, 1.7, 1.9], look: [B, 0.8, -0.3], fov: 45, fog: [0x1e1a1c, 4, 30] },
@@ -535,7 +542,7 @@ export const REELS = {
 			k.cone(1.2, 3.5, 0x6a7a6a, { x: s * 6, y: 0.9, z: -1, rx: PI / 2, parent: boat, opacity: 0.8, seg: 6 });
 			k.cyl(0.01, 0.01, 2, 0x333333, { x: s * 5.8, y: 2.2, z: -0.5, parent: boat });
 		});
-		k.person({ x: 0.4, y: 1.3, z: -2.5, ry: 2.5, colors: { shirt: 0xf2eee4, legs: 0x3a4a6a, hair: 0x6a4a2a }, parent: boat, from: 3 });
+		k.person({ x: 0.4, y: 1.3, z: -2.5, ry: 2.5, colors: { shirt: 0xf2eee4, legs: 0x3a4a6a, hair: 0x6a4a2a }, parent: boat, from: 1 });
 		k.tick((t) => {
 			boat.position.y = Math.sin(t) * 0.12;
 			boat.rotation.z = Math.sin(t * 0.8) * 0.03;
@@ -603,9 +610,9 @@ export const REELS = {
 		return {
 			shots: [
 				{ pos: [Dx + 0.9, 1.35, 0.4], look: [Dx - 0.1, 0.95, -1.1], fov: 42, fog: [0xe8e0cc, 6, 30] },
+				{ pos: [S + 10, 3.5, 10], look: [S, 2.5, 0], fov: 45 },
 				{ pos: [-14, 2.2, 22], look: [0, 1, 0], fov: 50 },
 				{ pos: [P + 2.4, 1.7, 2.2], look: [P - 0.4, 1.0, 0], fov: 50 },
-				{ pos: [S + 10, 3.5, 10], look: [S, 2.5, 0], fov: 45 },
 				{ pos: [1, 1.5, M + 164.5], look: [0, 4, M + 120], fov: 55 },
 				{ pos: [0.5, 1.3, 3.8], look: [0.2, 1.0, 0], fov: 45 },
 			],
@@ -1797,7 +1804,7 @@ export const REELS = {
 		k.torus(1.15, 0.12, 0x8a8a8a, { z: -5.95, parent: mod });
 		k.spot(0xfff4e0, 40, { x: I, y: 0.5, z: -5.5, target: [I, 0, 0], angle: 0.6, distance: 14 });
 		k.point(0xd8e0ff, 5, 10, { x: I + 1, y: 1, z: 3 });
-		const roll = k.group({ x: I - 0.25, y: -0.15, z: -1, rz: 0.35, from: 4 });
+		const roll = k.group({ x: I - 0.25, y: -0.15, z: -1, rz: 0.35, from: 1, until: 1 });
 		const skin = 0xe8c0a0;
 		k.box(0.3, 0.62, 0.42, 0x3a3a40, { x: 0.12, y: 0.3, rz: -0.45, parent: roll });
 		k.box(0.32, 0.22, 0.44, 0x2a2a30, { x: 0.02, y: 0.02, rz: -0.2, parent: roll });
@@ -1827,10 +1834,26 @@ export const REELS = {
 			pen.rotation.z = 0.6 + t * 0.15;
 		});
 		// The station, and two of them on one tether.
-		const st = k.group({ x: 40, y: 10, z: -60, ry: 0.5, from: 5 });
+		const st = k.group({ x: 40, y: 10, z: -60, ry: 0.5, from: 4 });
 		k.box(50, 0.8, 0.8, 0xc8c8c4, { parent: st, metal: 0.6 });
 		for (let i = 0; i < 4; i++) [-1, 1].forEach((s) => k.box(4, 0.05, 14, 0xc89a40, { x: -20 + i * 13.3, z: s * 8, parent: st, metal: 0.6, rough: 0.3 }));
 		for (let i = 0; i < 4; i++) k.cyl(1.5, 1.5, 6, 0xe8e8e4, { x: -4 + i * 3, y: -1, z: 4, rx: PI / 2, parent: st, metal: 0.5 });
+		// Kowalski on the end of the tether, Stone holding on, the station beyond.
+		const stone = astro({ x: 5, y: 1.5, z: 6, ry: 0.4, rz: -0.3, pose: "arms-out", from: 4, until: 4 });
+		const matt = astro({ x: 9.5, y: 3.6, z: 1.5, ry: -0.5, rz: 0.5, pose: "arms-out", from: 4, until: 4 });
+		k.box(0.75, 0.9, 0.5, 0xdcdcd4, { y: 1.2, z: -0.5, parent: matt });
+		[-1, 1].forEach((sx) => k.box(0.12, 0.12, 0.6, 0x9a9a98, { x: sx * 0.45, y: 0.85, z: -0.2, parent: matt }));
+		void stone;
+		const rope = (a, b) => {
+			const A = new k.THREE.Vector3(...a), Bv = new k.THREE.Vector3(...b);
+			const m = k.cyl(0.025, 0.025, A.distanceTo(Bv), 0xf8f0e0, { from: 4, until: 4, shadow: false });
+			m.position.copy(A).add(Bv).multiplyScalar(0.5);
+			m.quaternion.setFromUnitVectors(new k.THREE.Vector3(0, 1, 0), Bv.clone().sub(A).normalize());
+			return m;
+		};
+		rope([5.9, 3.1, 5.9], [7.6, 3.9, 3.6]);
+		rope([7.6, 3.9, 3.6], [9.1, 4.6, 1.9]);
+		k.point(0xffffff, 10, 18, { x: 2, y: 6, z: 10, from: 4, until: 4 });
 		// Alone, tumbling.
 		const lone = astro({ x: -30, y: 0, z: 60, pose: "arms-out", from: 5 });
 		k.tick((t) => lone.rotation.set(t * 0.25, t * 0.1, t * 0.35));
@@ -1840,11 +1863,11 @@ export const REELS = {
 		k.point(0xffffff, 8, 20, { x: -26, y: 3, z: 66, from: 5 });
 		return {
 			shots: [
-				{ pos: [I + 0.25, 0.45, 2.15], look: [I + 0.75, 0.3, 1.35], fov: 45, hide: ["stars"], exposure: 1.2 },
 				{ pos: [0, -30, 200], look: [300, -48, -400], fov: 45 },
+				{ pos: [I + 0.1, 0.25, 1.6], look: [I, 0.1, -1], fov: 55, hide: ["stars"] },
 				{ pos: [14, 3, 14], look: [-1, -2, 0], fov: 50 },
 				{ pos: [16, 2, 20], look: [-6, 0, 0], fov: 60 },
-				{ pos: [I + 0.1, 0.25, 1.6], look: [I, 0.1, -1], fov: 55, hide: ["stars"] },
+				{ pos: [1.5, 5.5, 10.5], look: [7.5, 1.5, 3], fov: 55 },
 				{ pos: [-27.8, 1, 63.4], look: [-30, 0.2, 60], fov: 50 },
 			],
 		};
