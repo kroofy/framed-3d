@@ -8,11 +8,13 @@ const playerId = localStorage.getItem("framed.player") ?? crypto.randomUUID();
 localStorage.setItem("framed.player", playerId);
 $("nameInput").value = localStorage.getItem("framed.name") ?? "";
 const pathCode = location.pathname.slice(1).toUpperCase();
-if (/^[A-Z]{4}$/.test(pathCode)) $("codeInput").value = pathCode;
+const inviteCode = /^[A-Z]{4}$/.test(pathCode) ? pathCode : null;
+if (inviteCode) $("codeInput").value = inviteCode;
 
 let state = null;
 let clockOffset = 0;
-let wantRoom = /^[A-Z]{4}$/.test(pathCode) && localStorage.getItem("framed.name") ? pathCode : null;
+// An invite link always joins straight away. Newcomers get a guest name and can rename themselves in the room.
+let wantRoom = inviteCode;
 let viewFrame = 0;
 let lastGuessCount = -1;
 let lastReelKey = "";
@@ -40,7 +42,7 @@ function connect() {
 	ws.onmessage = (event) => {
 		const msg = JSON.parse(event.data);
 		if (msg.t === "state") onState(msg);
-		else if (msg.t === "error") toast(msg.text);
+		else if (msg.t === "error") onError(msg.text);
 		else if (msg.t === "guessed") onGuessed(msg);
 	};
 }
@@ -50,6 +52,24 @@ function send(msg) {
 	else queue.push(data);
 }
 connect();
+
+function onError(text) {
+	toast(text);
+	// A dead invite link: stop retrying it and fall back to the home screen.
+	if (!state && wantRoom && /no such room/i.test(text)) {
+		wantRoom = null;
+		history.replaceState(null, "", "/");
+		show("home");
+	}
+}
+
+function rename(raw) {
+	const name = raw.trim().slice(0, 18);
+	if (!name || !state || name === state.players.find((p) => p.id === state.me)?.name) return;
+	localStorage.setItem("framed.name", name);
+	$("nameInput").value = name;
+	send({ t: "join", code: state.code, name });
+}
 
 function myName() {
 	const name = $("nameInput").value.trim() || localStorage.getItem("framed.name") || `Guest ${Math.floor(Math.random() * 900 + 100)}`;
@@ -65,6 +85,13 @@ $("joinBtn").onclick = () => {
 	wantRoom = code;
 	send({ t: "join", code, name: myName() });
 };
+$("lobbyName").addEventListener("change", (e) => rename(e.target.value));
+$("lobbyName").addEventListener("keydown", (e) => e.key === "Enter" && e.target.blur());
+$("scoreboard").addEventListener("click", (e) => {
+	if (!e.target.closest("li[data-me]")) return;
+	const name = prompt("Your name", localStorage.getItem("framed.name") ?? "");
+	if (name !== null) rename(name);
+});
 $("codeInput").addEventListener("keydown", (e) => e.key === "Enter" && $("joinBtn").click());
 $("nameInput").addEventListener("keydown", (e) => e.key === "Enter" && ($("codeInput").value ? $("joinBtn") : $("createBtn")).click());
 $("copyLink").onclick = () => {
@@ -207,6 +234,8 @@ function onState(s) {
 		show("lobby");
 		$("lobbyCode").textContent = s.code;
 		$("lobbyPlayers").innerHTML = s.players.map((p) => playerRow(p, s)).join("");
+		const mine = s.players.find((p) => p.id === s.me);
+		if (mine && document.activeElement !== $("lobbyName")) $("lobbyName").value = mine.name;
 		$("hostControls").classList.toggle("hidden", !isHost);
 		$("waitHost").classList.toggle("hidden", isHost);
 		if (first) {
@@ -288,7 +317,7 @@ function playerRow(p, s, game = false) {
 		? `<span class="marks">${Array.from({ length: 6 }, (_, i) => `<i class="${p.marks[i] ?? ""}"></i>`).join("")}</span>`
 		: "";
 	const guesses = game && p.guesses && p.id !== s.me && s.status !== "playing" && p.guesses.length ? `<span class="guesses">${p.guesses.map((g) => esc(g || "skip")).join(" · ")}</span>` : "";
-	return `<li class="${p.online ? "" : "offline"}"><span class="dot" style="color:${p.color};background:${p.color}"></span><span class="name">${esc(p.name)}${p.id === s.me ? " (you)" : ""}${guesses}</span>${marks}${game ? `<span class="score">${p.score}</span>` : ""}${!game && p.id === s.hostId ? '<span class="tag">host</span>' : ""}</li>`;
+	return `<li class="${p.online ? "" : "offline"}"${p.id === s.me ? ' data-me title="Click to change your name"' : ""}><span class="dot" style="color:${p.color};background:${p.color}"></span><span class="name">${esc(p.name)}${p.id === s.me ? " (you)" : ""}${guesses}</span>${marks}${game ? `<span class="score">${p.score}</span>` : ""}${!game && p.id === s.hostId ? '<span class="tag">host</span>' : ""}</li>`;
 }
 
 function renderChat(id) {

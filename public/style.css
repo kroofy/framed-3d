@@ -771,3 +771,20 @@ input[type="range"] {
 		font-size: 34px;
 	}
 }
+
+/* Rename yourself in the lobby (invite links join with a guest name). */
+.you-name {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	margin: 6px 0 12px;
+	color: var(--muted);
+	font-size: 14px;
+}
+.you-name input {
+	flex: 1;
+	max-width: 240px;
+}
+.scoreboard li[data-me] {
+	cursor: pointer;
+}
