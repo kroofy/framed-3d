@@ -7,6 +7,10 @@
 		<link rel="preconnect" href="https://fonts.googleapis.com" />
 		<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
 		<link rel="stylesheet" href="/style.css" />
+		<!-- Boot step 0, before first paint: an invite link (/ABCD) shows the neutral #boot screen, never the home page. -->
+		<script>
+			if (/^\/[A-Z]{4}\/?$/i.test(location.pathname) && !/[?&]preview=/.test(location.search)) document.documentElement.classList.add("boot-room");
+		</script>
 		<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎞️</text></svg>" />
 	</head>
 	<body>
@@ -18,6 +22,14 @@
 			</div>
 			<div class="conn" id="conn" title="Connection">●</div>
 		</header>
+
+		<!-- Boot: shown on invite links until we know whether to ask for a name or seat you straight away -->
+		<main id="boot" class="screen hidden">
+			<section class="admit">
+				<div class="admit-kicker">🎟 Admit one · <b id="bootCode">----</b></div>
+				<h1>Finding your screening…</h1>
+			</section>
+		</main>
 
 		<!-- Home -->
 		<main id="home" class="screen">
@@ -45,14 +57,14 @@
 		<main id="admit" class="screen hidden">
 			<section class="admit">
 				<div class="admit-kicker">🎟 Admit one · <b id="admitCode">----</b></div>
-				<h1 id="admitTitle">Finding your screening…</h1>
+				<h1 id="admitTitle"></h1>
 				<p id="admitSub" class="muted"></p>
 				<ul class="seats" id="admitSeats"></ul>
 				<div class="card admit-card hidden" id="admitReturning">
 					<button class="primary big" id="continueBtn">Continue as <span id="continueName"></span> →</button>
 					<button class="ghost" id="notMeBtn" type="button">Not you? Use another name</button>
 				</div>
-				<form class="card admit-card" id="admitForm">
+				<form class="card admit-card hidden" id="admitForm">
 					<label>What should we call you?<input id="admitName" maxlength="18" placeholder="e.g. Kubrick Fan" autocomplete="nickname" required /></label>
 					<button class="primary big" id="admitBtn">Take your seat →</button>
 					<p class="muted fine">Shown on the scoreboard and in chat. We'll remember it on this device.</p>

@@ -30,6 +30,13 @@ input {
 .hidden {
 	display: none !important;
 }
+/* Boot step 0: invite links show #boot, not #home, until app.js picks a screen. */
+html.boot-room #home {
+	display: none !important;
+}
+html.boot-room #boot {
+	display: block !important;
+}
 .muted {
 	color: var(--muted);
 }

@@ -1,5 +1,6 @@
 // HTTP + WebSocket front door. Clients send moves; the server commits them to the durable room and pushes each
 // player their own view of the room whenever its document changes.
+import { createHash } from "node:crypto";
 import { mkdirSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { createServer } from "node:http";
@@ -283,7 +284,15 @@ const server = createServer(async (req, res) => {
 		const file = normalize(join(base, path));
 		if (!file.startsWith(base)) throw new Error("bad path");
 		const body = await readFile(file);
-		res.writeHead(200, { "content-type": TYPES[extname(file)] ?? "application/octet-stream", "cache-control": "no-cache" });
+		// no-cache makes browsers check every load; the ETag lets that check come back as a tiny 304 instead of the file.
+		const etag = `"${createHash("sha1").update(body).digest("base64url")}"`;
+		const headers = { "content-type": TYPES[extname(file)] ?? "application/octet-stream", "cache-control": "no-cache", etag };
+		if (req.headers["if-none-match"] === etag) {
+			res.writeHead(304, headers);
+			res.end();
+			return;
+		}
+		res.writeHead(200, headers);
 		res.end(body);
 	} catch {
 		res.writeHead(404, { "content-type": "text/plain" });

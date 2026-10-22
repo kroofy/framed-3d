@@ -1,4 +1,16 @@
-import { Stage } from "./stage.js";
+import { decide, readRoute, stepLogger } from "./boot.js";
+
+// Three.js and every reel are big, and only the game screen needs them, so they load in the background (boot step 5).
+let Stage = null;
+let stageLoading = null;
+function loadStage() {
+	stageLoading ??= import("./stage.js").then((m) => {
+		Stage = m.Stage;
+		log("5 stage ready");
+	});
+	return stageLoading;
+}
+const log = stepLogger(new URLSearchParams(location.search).has("debug"));
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
@@ -30,8 +42,8 @@ function rememberName(name) {
 }
 
 $("nameInput").value = savedName() ?? "";
-const pathCode = location.pathname.slice(1).toUpperCase();
-const inviteCode = /^[A-Z]{4}$/.test(pathCode) ? pathCode : null;
+const route = readRoute(location.pathname, location.search);
+const inviteCode = route.kind === "room" ? route.code : null;
 if (inviteCode) $("codeInput").value = inviteCode;
 
 let state = null;
@@ -119,25 +131,52 @@ const ADMIT_STATUS = {
 	over: "the show just wrapped, and the host can start another",
 };
 
-async function admit(code) {
-	show("admit");
-	$("admitCode").textContent = code;
-	let info;
+// Step 2: ask the server about the room. null = no such room, undefined = lookup failed.
+async function lookupRoom(code) {
 	try {
 		const res = await fetch(`/api/rooms/${code}?player=${encodeURIComponent(playerId)}`);
-		info = res.status === 404 ? null : await res.json();
+		return res.status === 404 ? null : await res.json();
 	} catch {
-		info = undefined; // Offline or flaky: still let them type a name. The join will report a dead room.
+		return undefined; // Offline or flaky: still let them type a name. The join will report a dead room.
 	}
-	if (info === null) {
-		toast("No such room. Check the code?");
-		history.replaceState(null, "", "/");
+}
+
+// Runs the boot steps in order. Until a step decides otherwise, the page shows the neutral #boot screen.
+async function boot() {
+	log("0 route", route);
+	if (route.kind === "preview") return bootPreview(route.reel);
+	if (route.kind === "home") {
 		show("home");
+		idle(loadStage);
 		return;
 	}
-	// Already seated in this room from this device: go straight back in.
-	if (info?.you) return enter(code, info.you);
 
+	const name = savedName();
+	log("1 identity", { playerId, name });
+	$("bootCode").textContent = route.code;
+
+	const room = await lookupRoom(route.code);
+	log("2 lookup", room);
+
+	const next = decide(room, name);
+	log("3 decide", next);
+	if (next.screen === "home") {
+		toast(next.toast);
+		history.replaceState(null, "", "/");
+		show("home");
+	} else if (next.screen === "admit") renderAdmit(route.code, next);
+	// Already seated: stay on #boot. The first room state from the join renders the real screen (step 4).
+	else enter(route.code, next.join);
+	idle(loadStage);
+}
+
+function idle(fn) {
+	(window.requestIdleCallback ?? setTimeout)(fn);
+}
+
+// Step 3, invite link with a free seat: show who's here and ask for (or confirm) a name.
+function renderAdmit(code, { ask, name: known, info }) {
+	$("admitCode").textContent = code;
 	const players = info?.players ?? [];
 	$("admitTitle").textContent = info?.host ? `${info.host}'s screening` : `Screening ${code}`;
 	const seated = players.length === 1 ? "1 person seated" : `${players.length} people seated`;
@@ -145,10 +184,10 @@ async function admit(code) {
 	renderSeats(players);
 
 	// We know a name from an earlier visit: one tap to use it, in case someone else is on this device now.
-	const known = savedName();
-	$("admitReturning").classList.toggle("hidden", !known);
-	$("admitForm").classList.toggle("hidden", !!known);
-	if (known) {
+	$("admitReturning").classList.toggle("hidden", ask !== "continue");
+	$("admitForm").classList.toggle("hidden", ask === "continue");
+	show("admit");
+	if (ask === "continue") {
 		$("continueName").textContent = known;
 		setYouSeat(known);
 		$("continueBtn").focus();
@@ -193,11 +232,10 @@ function enter(code, name) {
 	rememberName(name);
 	$("nameInput").value = name;
 	wantRoom = code;
+	log("4 join", { code, name });
 	// When the socket isn't open yet, onopen sends the join for wantRoom.
 	if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ t: "join", code, name }));
 }
-
-if (inviteCode) admit(inviteCode);
 
 // --- Home ------------------------------------------------------------------------------------------------------------
 $("createBtn").onclick = () => send({ t: "create", name: myName() });
@@ -339,10 +377,13 @@ function renderFilmstrip() {
 
 // --- Rendering state -------------------------------------------------------------------------------------------------
 function show(screen) {
-	for (const id of ["home", "admit", "lobby", "game", "over"]) $(id).classList.toggle("hidden", id !== screen);
+	for (const id of ["boot", "home", "admit", "lobby", "game", "over"]) $(id).classList.toggle("hidden", id !== screen);
+	// index.html marks invite links before first paint so they never flash the home screen. From here on, show() decides.
+	document.documentElement.classList.remove("boot-room");
 }
 
 function onState(s) {
+	if (state === null) log("4 first state", s.status);
 	const first = state === null || state.code !== s.code;
 	state = s;
 	clockOffset = s.now - Date.now();
@@ -375,6 +416,11 @@ function onState(s) {
 		return;
 	}
 
+	// A reel needs the 3D stage. If it's still loading, keep the current screen and render once it's here.
+	if (!Stage) {
+		loadStage().then(() => state && onState(state));
+		return;
+	}
 	show("game");
 	if (!stage) stage = new Stage($("stage"));
 	const reelKey = `${s.round}:${s.reel}`;
@@ -498,13 +544,15 @@ function toast(text, good = false) {
 }
 
 // --- Dev preview: /?preview=r01 renders one set, keys 1-6 switch frames ---------------------------------------------
-const preview = new URLSearchParams(location.search).get("preview");
-if (preview) {
+async function bootPreview(reel) {
+	await loadStage();
 	show("game");
 	stage = new Stage($("stage"));
-	stage.load(preview);
+	stage.load(reel);
 	state = { status: "preview", frames: 6, my: null };
 	setFrame(Number(new URLSearchParams(location.search).get("f") ?? 0));
 	window.__setFrame = (f) => setFrame(f);
 	window.__stage = stage;
 }
+
+boot();
