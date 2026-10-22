@@ -885,3 +885,63 @@ input[type="range"] {
 .admit .back:hover {
 	color: var(--text);
 }
+
+/* Boot: a short, unhurried "finding your screening" beat, then a soft hand-off to the next screen. */
+.boot h1,
+.boot > p {
+	transition: opacity 0.25s ease;
+}
+.boot.swap h1,
+.boot.swap > p {
+	opacity: 0;
+}
+.beam {
+	position: relative;
+	width: 180px;
+	height: 2px;
+	margin: 26px auto 0;
+	border-radius: 2px;
+	background: var(--line);
+	overflow: hidden;
+}
+.beam::after {
+	content: "";
+	position: absolute;
+	inset: 0 auto 0 0;
+	width: 40%;
+	background: linear-gradient(90deg, transparent, var(--gold), transparent);
+	animation: beam 1.3s ease-in-out infinite;
+}
+@keyframes beam {
+	from {
+		transform: translateX(-100%);
+	}
+	to {
+		transform: translateX(250%);
+	}
+}
+.screen.leaving {
+	animation: screen-out 0.28s ease-in forwards;
+}
+.screen.entering {
+	animation: screen-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+@keyframes screen-out {
+	to {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
+}
+@keyframes screen-in {
+	from {
+		opacity: 0;
+		transform: translateY(10px);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.beam::after,
+	.screen.leaving,
+	.screen.entering {
+		animation: none;
+	}
+}

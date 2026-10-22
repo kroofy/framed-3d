@@ -155,7 +155,7 @@ async function boot() {
 	log("1 identity", { playerId, name });
 	$("bootCode").textContent = route.code;
 
-	const room = await lookupRoom(route.code);
+	const [room] = await Promise.all([lookupRoom(route.code), wait(BOOT_FIND_MS)]);
 	log("2 lookup", room);
 
 	const next = decide(room, name);
@@ -165,13 +165,34 @@ async function boot() {
 		history.replaceState(null, "", "/");
 		show("home");
 	} else if (next.screen === "admit") renderAdmit(route.code, next);
-	// Already seated: stay on #boot. The first room state from the join renders the real screen (step 4).
-	else enter(route.code, next.join);
+	// Already seated: greet them on #boot, join meanwhile, and let the first room state hand off to the real screen (step 4).
+	else {
+		bootHold = Promise.all([bootLine(`Welcome back, ${next.join}`, "Taking you to your seat…"), wait(BOOT_WELCOME_MS)]);
+		enter(route.code, next.join);
+	}
 	idle(loadStage);
 }
 
 function idle(fn) {
 	(window.requestIdleCallback ?? setTimeout)(fn);
+}
+
+// Pacing for invite links. Long enough to read and feel deliberate, short enough not to stall a reload.
+const BOOT_FIND_MS = 1000; // "Finding your screening…" stays at least this long
+const BOOT_WELCOME_MS = 900; // "Welcome back" stays at least this long before the lobby
+const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+// Resolves when #boot may hand off to the next screen.
+let bootHold = null;
+
+// Swap the #boot heading with a short cross-fade.
+async function bootLine(title, sub) {
+	const box = document.querySelector(".boot");
+	box.classList.add("swap");
+	if (!reducedMotion) await wait(250);
+	$("bootTitle").textContent = title;
+	$("bootSub").textContent = sub;
+	box.classList.remove("swap");
 }
 
 // Step 3, invite link with a free seat: show who's here and ask for (or confirm) a name.
@@ -186,12 +207,11 @@ function renderAdmit(code, { ask, name: known, info }) {
 	// We know a name from an earlier visit: one tap to use it, in case someone else is on this device now.
 	$("admitReturning").classList.toggle("hidden", ask !== "continue");
 	$("admitForm").classList.toggle("hidden", ask === "continue");
-	show("admit");
+	show("admit").then(() => (ask === "continue" ? $("continueBtn") : $("admitName")).focus());
 	if (ask === "continue") {
 		$("continueName").textContent = known;
 		setYouSeat(known);
-		$("continueBtn").focus();
-	} else $("admitName").focus();
+	}
 }
 
 function renderSeats(players) {
@@ -376,10 +396,56 @@ function renderFilmstrip() {
 }
 
 // --- Rendering state -------------------------------------------------------------------------------------------------
+const SCREENS = ["boot", "home", "admit", "lobby", "game", "over"];
+// index.html shows #boot for invite links before first paint, so that is where the page starts.
+let currentScreen = document.documentElement.classList.contains("boot-room") ? "boot" : "home";
+// While #boot is fading out, later show() calls only update where we're headed.
+let pendingScreen = null;
+let leaving = null;
+
+// Returns a promise that resolves once the screen is on display.
 function show(screen) {
-	for (const id of ["boot", "home", "admit", "lobby", "game", "over"]) $(id).classList.toggle("hidden", id !== screen);
-	// index.html marks invite links before first paint so they never flash the home screen. From here on, show() decides.
+	if (pendingScreen !== null) {
+		pendingScreen = screen;
+		return leaving;
+	}
+	if (currentScreen === "boot" && screen !== "boot") {
+		pendingScreen = screen;
+		leaving = leaveBoot();
+		return leaving;
+	}
+	swapTo(screen);
+	return Promise.resolve();
+}
+
+async function leaveBoot() {
+	await bootHold;
+	if (!reducedMotion) {
+		$("boot").classList.add("leaving");
+		await wait(280);
+		$("boot").classList.remove("leaving");
+	}
+	const screen = pendingScreen;
+	pendingScreen = null;
+	leaving = null;
+	swapTo(screen);
+}
+
+function swapTo(screen) {
+	const changed = screen !== currentScreen;
+	for (const id of SCREENS) $(id).classList.toggle("hidden", id !== screen);
+	// From here on show() decides, not the boot-room class from index.html.
 	document.documentElement.classList.remove("boot-room");
+	currentScreen = screen;
+	// The room chip arrives with the room, not while #boot is still greeting you.
+	$("roomChip").classList.toggle("hidden", !state || !["lobby", "game", "over"].includes(screen));
+	if (changed && !reducedMotion) {
+		const el = $(screen);
+		el.classList.remove("entering");
+		void el.offsetWidth; // restart the animation
+		el.classList.add("entering");
+		el.addEventListener("animationend", () => el.classList.remove("entering"), { once: true });
+	}
 }
 
 function onState(s) {
@@ -389,7 +455,6 @@ function onState(s) {
 	clockOffset = s.now - Date.now();
 	wantRoom = s.code;
 	if (location.pathname !== `/${s.code}`) history.replaceState(null, "", `/${s.code}`);
-	$("roomChip").classList.remove("hidden");
 	$("roomCode").textContent = s.code;
 	const isHost = s.hostId === s.me;
 
