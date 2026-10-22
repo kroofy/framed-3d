@@ -323,6 +323,23 @@ export class Game {
 		return conversation.commit(async (tx) => change(await tx.doc(Room, conversation.id), tx, conversation.id), ctx);
 	}
 
+	/** A read-only look at a room for the admission screen: who's seated, and whether this player already has a seat. */
+	async peek(code: string, playerId: string) {
+		const id = (await this.rooms())[code.toUpperCase()];
+		if (id === undefined) return undefined;
+		const room = await this.harness.snapshot(Room, id as ConversationId, ctx);
+		if (room === undefined) return undefined;
+		const online = this.onlineIn(room.code);
+		const players = Object.values(room.players).sort((a, b) => a.joinedAt - b.joinedAt);
+		return {
+			code: room.code,
+			status: room.status,
+			host: room.players[room.hostId]?.name ?? null,
+			players: players.map((p) => ({ name: p.name, color: p.color, online: online.has(p.id), host: p.id === room.hostId })),
+			you: room.players[playerId]?.name ?? null,
+		};
+	}
+
 	join(code: string, playerId: string, rawName: string): Promise<void> {
 		const name = rawName.trim().slice(0, 18) || "Anonymous";
 		return this.#move(code, (room) => {

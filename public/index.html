@@ -41,6 +41,26 @@
 			</section>
 		</main>
 
+		<!-- Admission: an invite link asks for your name before you take a seat -->
+		<main id="admit" class="screen hidden">
+			<section class="admit">
+				<div class="admit-kicker">🎟 Admit one · <b id="admitCode">----</b></div>
+				<h1 id="admitTitle">Finding your screening…</h1>
+				<p id="admitSub" class="muted"></p>
+				<ul class="seats" id="admitSeats"></ul>
+				<div class="card admit-card hidden" id="admitReturning">
+					<button class="primary big" id="continueBtn">Continue as <span id="continueName"></span> →</button>
+					<button class="ghost" id="notMeBtn" type="button">Not you? Use another name</button>
+				</div>
+				<form class="card admit-card" id="admitForm">
+					<label>What should we call you?<input id="admitName" maxlength="18" placeholder="e.g. Kubrick Fan" autocomplete="nickname" required /></label>
+					<button class="primary big" id="admitBtn">Take your seat →</button>
+					<p class="muted fine">Shown on the scoreboard and in chat. We'll remember it on this device.</p>
+				</form>
+				<a class="muted back" href="/">← Back to the start</a>
+			</section>
+		</main>
+
 		<!-- Lobby -->
 		<main id="lobby" class="screen hidden">
 			<section class="lobby-grid">

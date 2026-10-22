@@ -262,6 +262,13 @@ const server = createServer(async (req, res) => {
 			res.end(JSON.stringify(TITLE_CHOICES));
 			return;
 		}
+		const peek = /^\/api\/rooms\/([A-Z]{4})$/i.exec(url.pathname);
+		if (peek !== null) {
+			const info = await game.peek(peek[1]!.toUpperCase(), url.searchParams.get("player") ?? "");
+			res.writeHead(info === undefined ? 404 : 200, { "content-type": TYPES[".json"]!, "cache-control": "no-store" });
+			res.end(JSON.stringify(info ?? { error: "No such room" }));
+			return;
+		}
 		if (url.pathname === "/api/health") {
 			res.writeHead(200, { "content-type": TYPES[".json"]! });
 			res.end(JSON.stringify({ ok: true, ai: game.aiEnabled, rooms: Object.keys(await game.rooms()).length }));

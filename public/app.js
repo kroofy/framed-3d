@@ -6,15 +6,38 @@ const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 // --- Identity ------------------------------------------------------------------------------------------------------
 const playerId = localStorage.getItem("framed.player") ?? crypto.randomUUID();
 localStorage.setItem("framed.player", playerId);
-$("nameInput").value = localStorage.getItem("framed.name") ?? "";
+
+// Your name lives in a year-long cookie, so invite links can seat you without asking again.
+const NAME_COOKIE = "framed_name";
+function savedName() {
+	const match = document.cookie.match(new RegExp(`(?:^|; )${NAME_COOKIE}=([^;]*)`));
+	if (match) {
+		try {
+			return decodeURIComponent(match[1]).trim().slice(0, 18) || null;
+		} catch {}
+	}
+	// Names saved by older versions sat in localStorage. Move them over to the cookie.
+	const legacy = localStorage.getItem("framed.name")?.trim();
+	if (legacy && !/^Guest \d{3}$/.test(legacy)) {
+		rememberName(legacy);
+		return legacy;
+	}
+	return null;
+}
+function rememberName(name) {
+	document.cookie = `${NAME_COOKIE}=${encodeURIComponent(name)}; Max-Age=${60 * 60 * 24 * 365}; Path=/; SameSite=Lax`;
+	localStorage.removeItem("framed.name");
+}
+
+$("nameInput").value = savedName() ?? "";
 const pathCode = location.pathname.slice(1).toUpperCase();
 const inviteCode = /^[A-Z]{4}$/.test(pathCode) ? pathCode : null;
 if (inviteCode) $("codeInput").value = inviteCode;
 
 let state = null;
 let clockOffset = 0;
-// An invite link always joins straight away. Newcomers get a guest name and can rename themselves in the room.
-let wantRoom = inviteCode;
+// Set once you've taken a seat. Reconnects rejoin this room on their own.
+let wantRoom = null;
 let viewFrame = 0;
 let lastGuessCount = -1;
 let lastReelKey = "";
@@ -31,7 +54,7 @@ function connect() {
 		$("conn").classList.add("ok");
 		$("conn").title = "Connected";
 		ws.send(JSON.stringify({ t: "hello", playerId }));
-		if (wantRoom) ws.send(JSON.stringify({ t: "join", code: wantRoom, name: myName() }));
+		if (wantRoom) ws.send(JSON.stringify({ t: "join", code: wantRoom, name: currentName() }));
 		while (queue.length) ws.send(queue.shift());
 	};
 	ws.onclose = () => {
@@ -55,6 +78,8 @@ connect();
 
 function onError(text) {
 	toast(text);
+	$("admitBtn").disabled = false;
+	$("continueBtn").disabled = false;
 	// A dead invite link: stop retrying it and fall back to the home screen.
 	if (!state && wantRoom && /no such room/i.test(text)) {
 		wantRoom = null;
@@ -66,16 +91,113 @@ function onError(text) {
 function rename(raw) {
 	const name = raw.trim().slice(0, 18);
 	if (!name || !state || name === state.players.find((p) => p.id === state.me)?.name) return;
-	localStorage.setItem("framed.name", name);
+	rememberName(name);
 	$("nameInput").value = name;
 	send({ t: "join", code: state.code, name });
 }
 
+// The name you typed on the home screen, else the remembered one. A guest name is a stopgap and is not remembered.
 function myName() {
-	const name = $("nameInput").value.trim() || localStorage.getItem("framed.name") || `Guest ${Math.floor(Math.random() * 900 + 100)}`;
-	localStorage.setItem("framed.name", name);
-	return name;
+	const typed = $("nameInput").value.trim().slice(0, 18);
+	if (typed) {
+		rememberName(typed);
+		return typed;
+	}
+	return savedName() ?? `Guest ${Math.floor(Math.random() * 900 + 100)}`;
 }
+
+// On a reconnect, keep the name the room already knows you by.
+function currentName() {
+	return state?.players.find((p) => p.id === state.me)?.name ?? myName();
+}
+
+// --- Admission (invite links) ----------------------------------------------------------------------------------------
+const ADMIT_STATUS = {
+	lobby: "waiting for the host to roll film",
+	playing: "a reel is already rolling, so jump right in",
+	reveal: "a reel is already rolling, so jump right in",
+	over: "the show just wrapped, and the host can start another",
+};
+
+async function admit(code) {
+	show("admit");
+	$("admitCode").textContent = code;
+	let info;
+	try {
+		const res = await fetch(`/api/rooms/${code}?player=${encodeURIComponent(playerId)}`);
+		info = res.status === 404 ? null : await res.json();
+	} catch {
+		info = undefined; // Offline or flaky: still let them type a name. The join will report a dead room.
+	}
+	if (info === null) {
+		toast("No such room. Check the code?");
+		history.replaceState(null, "", "/");
+		show("home");
+		return;
+	}
+	// Already seated in this room from this device: go straight back in.
+	if (info?.you) return enter(code, info.you);
+
+	const players = info?.players ?? [];
+	$("admitTitle").textContent = info?.host ? `${info.host}'s screening` : `Screening ${code}`;
+	const seated = players.length === 1 ? "1 person seated" : `${players.length} people seated`;
+	$("admitSub").textContent = info ? `${seated} · ${ADMIT_STATUS[info.status] ?? ""}` : "";
+	renderSeats(players);
+
+	// We know a name from an earlier visit: one tap to use it, in case someone else is on this device now.
+	const known = savedName();
+	$("admitReturning").classList.toggle("hidden", !known);
+	$("admitForm").classList.toggle("hidden", !!known);
+	if (known) {
+		$("continueName").textContent = known;
+		setYouSeat(known);
+		$("continueBtn").focus();
+	} else $("admitName").focus();
+}
+
+function renderSeats(players) {
+	$("admitSeats").innerHTML =
+		players
+			.map(
+				(p) =>
+					`<li class="${p.online ? "" : "offline"}"><span class="dot" style="color:${p.color};background:${p.color}"></span>${esc(p.name)}${p.host ? '<span class="tag">host</span>' : ""}</li>`,
+			)
+			.join("") + '<li class="you"></li>';
+	setYouSeat($("admitName").value.trim());
+}
+function setYouSeat(name) {
+	const you = $("admitSeats").querySelector(".you");
+	if (you) you.textContent = name || "you?";
+}
+$("admitName").addEventListener("input", () => setYouSeat($("admitName").value.trim()));
+$("continueBtn").addEventListener("click", () => {
+	$("continueBtn").disabled = true;
+	enter(inviteCode, $("continueName").textContent);
+});
+$("notMeBtn").addEventListener("click", () => {
+	$("admitReturning").classList.add("hidden");
+	$("admitForm").classList.remove("hidden");
+	$("admitName").value = "";
+	setYouSeat("");
+	$("admitName").focus();
+});
+$("admitForm").addEventListener("submit", (e) => {
+	e.preventDefault();
+	const name = $("admitName").value.trim().slice(0, 18);
+	if (!name) return $("admitName").focus();
+	$("admitBtn").disabled = true;
+	enter(inviteCode, name);
+});
+
+function enter(code, name) {
+	rememberName(name);
+	$("nameInput").value = name;
+	wantRoom = code;
+	// When the socket isn't open yet, onopen sends the join for wantRoom.
+	if (ws?.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ t: "join", code, name }));
+}
+
+if (inviteCode) admit(inviteCode);
 
 // --- Home ------------------------------------------------------------------------------------------------------------
 $("createBtn").onclick = () => send({ t: "create", name: myName() });
@@ -89,7 +211,7 @@ $("lobbyName").addEventListener("change", (e) => rename(e.target.value));
 $("lobbyName").addEventListener("keydown", (e) => e.key === "Enter" && e.target.blur());
 $("scoreboard").addEventListener("click", (e) => {
 	if (!e.target.closest("li[data-me]")) return;
-	const name = prompt("Your name", localStorage.getItem("framed.name") ?? "");
+	const name = prompt("Your name", currentName());
 	if (name !== null) rename(name);
 });
 $("codeInput").addEventListener("keydown", (e) => e.key === "Enter" && $("joinBtn").click());
@@ -217,7 +339,7 @@ function renderFilmstrip() {
 
 // --- Rendering state -------------------------------------------------------------------------------------------------
 function show(screen) {
-	for (const id of ["home", "lobby", "game", "over"]) $(id).classList.toggle("hidden", id !== screen);
+	for (const id of ["home", "admit", "lobby", "game", "over"]) $(id).classList.toggle("hidden", id !== screen);
 }
 
 function onState(s) {

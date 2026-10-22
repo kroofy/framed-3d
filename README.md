@@ -18,7 +18,9 @@ npm start          # http://localhost:8787
 ```
 
 This needs Node ≥ 24, which runs the TypeScript server directly. Open the URL, enter a name, and press **Start a screening**.
-Friends join with the code or the **Invite** link.
+Friends join with the code or the **Invite** link. A first-time visitor on an invite link sees the room and is asked for a
+name before taking a seat. The name is kept in a `framed_name` cookie for a year, so later invite links offer
+one-tap **Continue as …**, with a "Not you?" option for shared devices.
 
 ### Playing with friends remotely
 
